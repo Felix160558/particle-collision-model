@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Particle Collision Model</title>
+  <link rel="stylesheet" href="./src/styles/theme.css" />
+</head>
+<body class="landing-page">
+  <main class="landing-shell">
+    <header class="landing-header">
+      <p class="landing-kicker">Particle Collision Model</p>
+      <h1>热学微观模型库</h1>
+      <p class="landing-summary">
+        用可交互的粒子、计数与高维几何模型，把压强、微观态和能量分布从公式变成可观察的过程。
+      </p>
+    </header>
+
+    <section class="model-grid" aria-label="模型入口">
+      <a class="model-card" href="./models/single_ball_pressure.html">
+        <span class="model-index">01</span>
+        <h2>单粒子碰撞模型</h2>
+        <p>观察单个粒子与容器壁碰撞时动量变化如何累积为压强。</p>
+      </a>
+
+      <a class="model-card" href="./models/position_microstates_two_boxes.html">
+        <span class="model-index">02</span>
+        <h2>微观态计数模型</h2>
+        <p>比较粒子分布在两个盒子中的组合数，理解宏观平衡为什么最可能出现。</p>
+      </a>
+
+      <a class="model-card" href="./models/high_dimensional_energy_sphere.html">
+        <span class="model-index">03</span>
+        <h2>高维能量球模型</h2>
+        <p>用能量约束下的高维球面投影，理解单个粒子的能量分布来源。</p>
+      </a>
+    </section>
+
+    <footer class="landing-footer">
+      <a href="./README.md">README</a>
+      <a href="./CONTRIBUTING.md">CONTRIBUTING</a>
+      <a href="./docs/codex-guide.md">AI 修改指南</a>
+    </footer>
+  </main>
+</body>
+</html>

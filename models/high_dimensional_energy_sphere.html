@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>高维能量球 - Particle Collision Model</title>
+  <link rel="stylesheet" href="../src/styles/theme.css" />
+</head>
+<body data-module-id="high_dimensional_energy_sphere">
+  <video id="webcam" autoplay playsinline muted></video>
+  <div id="shade"></div>
+  <main id="app">
+    <div id="threeMount" aria-label="particle model viewport"></div>
+
+    <header class="topbar">
+      <div>
+        <div class="kicker"><a class="home-link" href="../index.html">Particle Collision Model</a></div>
+        <h1 id="moduleTitle">高维能量球</h1>
+      </div>
+      <nav id="moduleNav" class="module-nav" aria-label="model modules"></nav>
+    </header>
+
+    <aside class="readout" aria-live="polite">
+      <div class="readout-row">
+        <span>主控物理量</span>
+        <strong id="primaryValue">standby</strong>
+      </div>
+      <div class="readout-row">
+        <span>手势状态</span>
+        <strong id="gestureState">standby</strong>
+      </div>
+    </aside>
+
+    <section id="formulaOverlay" class="formula-overlay" aria-label="formula overlay"></section>
+
+    <div class="controls">
+      <button id="startBtn" type="button">打开摄像头手势控制</button>
+      <button id="formulaToggle" type="button" aria-pressed="true">公式</button>
+    </div>
+  </main>
+
+  <script type="module" src="../src/main.js"></script>
+</body>
+</html>
