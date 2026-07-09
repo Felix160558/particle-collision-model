@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Clean Sci‑Fi Particle Cube — No Corner Lights</title>
+  <style>
+    :root {
+      --text: rgba(248, 252, 255, 0.94);
+      --muted: rgba(226, 236, 246, 0.62);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(38, 45, 56, 0.9), rgba(3, 4, 8, 1) 66%),
+        linear-gradient(180deg, #05060a, #0a0b10);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    #webcam {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      opacity: 0.34;
+      filter: brightness(0.62) contrast(1.06) saturate(0.72);
+      z-index: 0;
+      background: #05060a;
+    }
+
+    #shade {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 48%, transparent 0%, rgba(0,0,0,0.10) 44%, rgba(0,0,0,0.74) 92%),
+        linear-gradient(180deg, rgba(0,0,0,0.46), transparent 22%, transparent 72%, rgba(0,0,0,0.56));
+    }
+
+    #threeMount {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+    }
+
+    .gesture-hint {
+      position: fixed;
+      z-index: 5;
+      left: 50%;
+      top: 24px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      background: rgba(8, 10, 14, 0.34);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+      pointer-events: none;
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+    }
+
+    .gesture-hint .icon {
+      width: 28px;
+      height: 28px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .gesture-hint .icon::before,
+    .gesture-hint .icon::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid rgba(255,255,255,0.88);
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgba(255,255,255,0.42);
+    }
+
+    .gesture-hint .icon::before { left: 2px; }
+    .gesture-hint .icon::after { right: 2px; }
+
+    .gesture-hint .text {
+      font-size: 13px;
+      color: rgba(248, 252, 255, 0.92);
+    }
+
+    .gesture-hint .state {
+      color: var(--muted);
+      font-size: 12px;
+      border-left: 1px solid rgba(255,255,255,0.16);
+      padding-left: 14px;
+    }
+
+    .tap-start {
+      position: fixed;
+      z-index: 6;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.92);
+      padding: 11px 17px;
+      font-size: 13px;
+      cursor: pointer;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.32);
+    }
+
+    .tap-start.hidden { display: none; }
+
+    .tiny-status {
+      position: fixed;
+      z-index: 5;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.42);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 720px) {
+      .gesture-hint {
+        top: 14px;
+        padding: 9px 12px;
+        gap: 10px;
+      }
+
+      .gesture-hint .text { font-size: 12px; }
+      .gesture-hint .state { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <video id="webcam" autoplay playsinline muted></video>
+  <div id="shade"></div>
+  <div id="threeMount"></div>
+
+  <div class="gesture-hint">
+    <div class="icon"></div>
+    <div class="text">Pinch to condense · Open to diffuse inside the cube</div>
+    <div class="state" id="stateText">hand tracking standby</div>
+  </div>
+
+  <button class="tap-start" id="startBtn">Start camera + gesture control</button>
+  <div class="tiny-status" id="fallbackText">Fallback: move mouse horizontally to condense / diffuse</div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+    const video = document.getElementById("webcam");
+    const mount = document.getElementById("threeMount");
+    const startBtn = document.getElementById("startBtn");
+    const stateText = document.getElementById("stateText");
+    const fallbackText = document.getElementById("fallbackText");
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x020308, 0.045);
+
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0.04, 5.45);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    mount.appendChild(renderer.domElement);
+
+    const clock = new THREE.Clock();
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    const cubeGroup = new THREE.Group();
+    root.add(cubeGroup);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+    const lightA = new THREE.PointLight(0xffffff, 2.8, 14);
+    lightA.position.set(2.8, 2.4, 3.8);
+    scene.add(lightA);
+
+    const lightB = new THREE.PointLight(0xffffff, 1.4, 10);
+    lightB.position.set(-3.2, -1.8, 2.8);
+    scene.add(lightB);
+
+    const cubeSize = 2.35;
+    const half = cubeSize / 2;
+    const particleBoundary = half * 0.92;
+
+    const glassCube = new THREE.Mesh(
+      new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.06,
+        roughness: 0.06,
+        metalness: 0.0,
+        transmission: 0.42,
+        thickness: 0.46,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      })
+    );
+    cubeGroup.add(glassCube);
+
+    function makeEdges(size, opacity, scale = 1) {
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(size, size, size)),
+        new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity,
+          blending: THREE.AdditiveBlending
+        })
+      );
+      edges.scale.setScalar(scale);
+      return edges;
+    }
+
+    const edgeMain = makeEdges(cubeSize, 0.78);
+    const edgeGlowOuter = makeEdges(cubeSize, 0.23, 1.045);
+    const edgeGlowInner = makeEdges(cubeSize, 0.16, 0.955);
+    cubeGroup.add(edgeMain, edgeGlowOuter, edgeGlowInner);
+
+    const particleCount = 10000;
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const condensedPositions = new Float32Array(particleCount * 3);
+    const diffusePositions = new Float32Array(particleCount * 3);
+    const seeds = new Float32Array(particleCount * 4);
+    const colors = new Float32Array(particleCount * 3);
+
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function randomInsideCube(boundary = particleBoundary) {
+      return new THREE.Vector3(
+        rand(-boundary, boundary),
+        rand(-boundary, boundary),
+        rand(-boundary, boundary)
+      );
+    }
+
+    function randomUnitVector() {
+      const z = rand(-1, 1);
+      const t = rand(0, Math.PI * 2);
+      const r = Math.sqrt(1 - z * z);
+      return new THREE.Vector3(r * Math.cos(t), r * Math.sin(t), z);
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+      const p = randomInsideCube(particleBoundary * 0.94);
+      const d = randomInsideCube(particleBoundary * 0.985);
+
+      const centerBias = 0.66;
+      condensedPositions[i * 3] = p.x * centerBias;
+      condensedPositions[i * 3 + 1] = p.y * centerBias;
+      condensedPositions[i * 3 + 2] = p.z * centerBias;
+
+      diffusePositions[i * 3] = d.x;
+      diffusePositions[i * 3 + 1] = d.y;
+      diffusePositions[i * 3 + 2] = d.z;
+
+      const vel = randomUnitVector().multiplyScalar(rand(0.07, 0.25));
+      velocities[i * 3] = vel.x;
+      velocities[i * 3 + 1] = vel.y;
+      velocities[i * 3 + 2] = vel.z;
+
+      seeds[i * 4] = rand(0, 1000);
+      seeds[i * 4 + 1] = rand(0.35, 1.45);
+      seeds[i * 4 + 2] = rand(0.35, 1.45);
+      seeds[i * 4 + 3] = rand(0.4, 1.4);
+
+      const brightness = rand(0.68, 1.0);
+      colors[i * 3] = brightness;
+      colors[i * 3 + 1] = brightness;
+      colors[i * 3 + 2] = brightness;
+
+      const start = randomInsideCube(particleBoundary * 0.98);
+      positions[i * 3] = start.x;
+      positions[i * 3 + 1] = start.y;
+      positions[i * 3 + 2] = start.z;
+    }
+
+    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+      size: 0.0115,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.88,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true
+    });
+
+    const particles = new THREE.Points(particleGeometry, particleMaterial);
+    cubeGroup.add(particles);
+
+    const controls = {
+      targetAssemble: 0.68,
+      assemble: 0.68,
+      rotX: 0.12,
+      rotY: -0.18
+    };
+
+    let handLandmarker = null;
+    let handReady = false;
+    let lastVideoTime = -1;
+    let smoothPinchDistance = 0.13;
+    let smoothHandX = 0.5;
+    let smoothHandY = 0.5;
+
+    window.addEventListener("pointermove", (e) => {
+      if (!handReady) {
+        const x = e.clientX / window.innerWidth;
+        controls.targetAssemble = THREE.MathUtils.clamp(1 - x, 0.08, 0.95);
+        controls.rotY = (x - 0.5) * 0.75;
+        controls.rotX = (e.clientY / window.innerHeight - 0.5) * 0.35 + 0.1;
+      }
+    });
+
+    async function enableCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+    }
+
+    async function enableHandTracking() {
+      try {
+        startBtn.textContent = "Loading...";
+        stateText.textContent = "loading hand tracking";
+        await enableCamera();
+
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+        );
+
+        handLandmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO",
+          numHands: 1
+        });
+
+        handReady = true;
+        startBtn.classList.add("hidden");
+        fallbackText.textContent = "";
+        stateText.textContent = "gesture control active";
+      } catch (err) {
+        console.error(err);
+        startBtn.classList.add("hidden");
+        stateText.textContent = "fallback: mouse controls";
+        fallbackText.textContent = "Move mouse horizontally to condense / diffuse";
+      }
+    }
+
+    startBtn.addEventListener("click", enableHandTracking);
+
+    function updateHandTracking() {
+      if (!handReady || !handLandmarker || video.readyState < 2) return;
+
+      const now = performance.now();
+      if (video.currentTime === lastVideoTime) return;
+      lastVideoTime = video.currentTime;
+
+      const result = handLandmarker.detectForVideo(video, now);
+      if (!result.landmarks || result.landmarks.length === 0) {
+        stateText.textContent = "show hand to camera";
+        return;
+      }
+
+      const hand = result.landmarks[0];
+      const thumb = hand[4];
+      const index = hand[8];
+      const wrist = hand[0];
+
+      const dx = thumb.x - index.x;
+      const dy = thumb.y - index.y;
+      const dz = (thumb.z || 0) - (index.z || 0);
+      const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      smoothPinchDistance += (d - smoothPinchDistance) * 0.25;
+      smoothHandX += (wrist.x - smoothHandX) * 0.18;
+      smoothHandY += (wrist.y - smoothHandY) * 0.18;
+
+      const open = THREE.MathUtils.smoothstep(smoothPinchDistance, 0.035, 0.22);
+      controls.targetAssemble = THREE.MathUtils.clamp(1 - open, 0.02, 0.98);
+
+      controls.rotY = (0.5 - smoothHandX) * 0.95;
+      controls.rotX = (smoothHandY - 0.5) * 0.42 + 0.1;
+
+      stateText.textContent = controls.targetAssemble > 0.55 ? "condensed inside cube" : "diffuse inside cube";
+    }
+
+    function bounceScalar(value, velocity, boundary) {
+      if (value > boundary) {
+        value = boundary;
+        velocity *= -1;
+      } else if (value < -boundary) {
+        value = -boundary;
+        velocity *= -1;
+      }
+      return [value, velocity];
+    }
+
+    function updateParticles(dt, time) {
+      controls.assemble += (controls.targetAssemble - controls.assemble) * (1 - Math.pow(0.0003, dt));
+      const a = THREE.MathUtils.smoothstep(controls.assemble, 0, 1);
+
+      for (let i = 0; i < particleCount; i++) {
+        const ix = i * 3;
+        const s = seeds[i * 4];
+        const noiseSpeedA = seeds[i * 4 + 1];
+        const noiseSpeedB = seeds[i * 4 + 2];
+
+        condensedPositions[ix] += velocities[ix] * dt * 0.70;
+        condensedPositions[ix + 1] += velocities[ix + 1] * dt * 0.70;
+        condensedPositions[ix + 2] += velocities[ix + 2] * dt * 0.70;
+
+        diffusePositions[ix] += velocities[ix] * dt * 1.02;
+        diffusePositions[ix + 1] += velocities[ix + 1] * dt * 1.02;
+        diffusePositions[ix + 2] += velocities[ix + 2] * dt * 1.02;
+
+        for (let axis = 0; axis < 3; axis++) {
+          let c = condensedPositions[ix + axis];
+          let d = diffusePositions[ix + axis];
+          let v = velocities[ix + axis];
+
+          [c, v] = bounceScalar(c, v, particleBoundary * 0.64);
+          [d, v] = bounceScalar(d, v, particleBoundary * 0.985);
+
+          condensedPositions[ix + axis] = c;
+          diffusePositions[ix + axis] = d;
+          velocities[ix + axis] = v;
+        }
+
+        velocities[ix] += Math.sin(time * noiseSpeedA + s) * dt * 0.012;
+        velocities[ix + 1] += Math.cos(time * noiseSpeedB + s * 1.7) * dt * 0.012;
+        velocities[ix + 2] += Math.sin(time * 0.77 + s * 0.31) * dt * 0.012;
+
+        const speed = Math.sqrt(velocities[ix]**2 + velocities[ix+1]**2 + velocities[ix+2]**2);
+        const maxSpeed = 0.30;
+        if (speed > maxSpeed) {
+          velocities[ix] = velocities[ix] / speed * maxSpeed;
+          velocities[ix + 1] = velocities[ix + 1] / speed * maxSpeed;
+          velocities[ix + 2] = velocities[ix + 2] / speed * maxSpeed;
+        }
+
+        const jitterX = Math.sin(time * 0.46 + s) * 0.014;
+        const jitterY = Math.cos(time * 0.38 + s * 0.7) * 0.014;
+        const jitterZ = Math.sin(time * 0.31 + s * 1.2) * 0.014;
+
+        const targetX = THREE.MathUtils.lerp(diffusePositions[ix], condensedPositions[ix], a) + jitterX;
+        const targetY = THREE.MathUtils.lerp(diffusePositions[ix + 1], condensedPositions[ix + 1], a) + jitterY;
+        const targetZ = THREE.MathUtils.lerp(diffusePositions[ix + 2], condensedPositions[ix + 2], a) + jitterZ;
+
+        const gatherRate = 0.072 + a * 0.076;
+        positions[ix] += (targetX - positions[ix]) * gatherRate;
+        positions[ix + 1] += (targetY - positions[ix + 1]) * gatherRate;
+        positions[ix + 2] += (targetZ - positions[ix + 2]) * gatherRate;
+
+        positions[ix] = THREE.MathUtils.clamp(positions[ix], -particleBoundary, particleBoundary);
+        positions[ix + 1] = THREE.MathUtils.clamp(positions[ix + 1], -particleBoundary, particleBoundary);
+        positions[ix + 2] = THREE.MathUtils.clamp(positions[ix + 2], -particleBoundary, particleBoundary);
+      }
+
+      particleGeometry.attributes.position.needsUpdate = true;
+
+      particleMaterial.opacity = 0.34 + a * 0.50;
+      particleMaterial.size = 0.0095 + a * 0.0045;
+
+      glassCube.material.opacity = 0.025 + a * 0.055;
+      edgeMain.material.opacity = 0.22 + a * 0.58;
+      edgeGlowOuter.material.opacity = 0.06 + a * 0.22;
+      edgeGlowInner.material.opacity = 0.05 + a * 0.18;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(clock.getDelta(), 0.033);
+      const time = clock.elapsedTime;
+
+      updateHandTracking();
+      updateParticles(dt, time);
+
+      root.rotation.x += (controls.rotX - root.rotation.x) * 0.035;
+      root.rotation.y += (controls.rotY - root.rotation.y) * 0.035;
+      root.rotation.z = Math.sin(time * 0.18) * 0.028;
+
+      cubeGroup.rotation.y += dt * (0.075 + controls.assemble * 0.06);
+      cubeGroup.rotation.x += Math.sin(time * 0.2) * 0.0007;
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    animate();
+  </script>
+</body>
+</html>

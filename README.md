@@ -1,6 +1,6 @@
 # Particle Collision Model
 
-这是一个面向热学、统计物理与物态变化教学的静态网页项目。项目用 HTML、CSS、JavaScript 和 Three.js 构建交互模型，适合直接发布到 GitHub Pages。
+这是一个面向热学、统计物理、物态变化与粒子结构教学的静态网页项目。项目用 HTML、CSS、JavaScript 和 Three.js 构建交互模型，适合直接发布到 GitHub Pages。
 
 ## 如何运行
 
@@ -46,6 +46,18 @@
 
 这是固液气三态变化模型的更敏感交互版本，用第二幕布的控制方式强化加热、冷却和相变过程的响应。它适合比较不同交互灵敏度下，相变演示是否更容易被课堂观察和操作。
 
+### 深冰晶格手势模型
+
+入口：`./models/deep_ice_cube_gesture_zoom.html`
+
+这个模型用冰晶格立方体表现有序结构和粒子散开之间的转化。它适合展示晶体结构、粒子排列、聚合与分散，以及手势缩放带来的空间观察变化。
+
+### 粒子立方体聚散模型
+
+入口：`./models/particle_cube_condense_diffuse.html`
+
+这个模型展示大量粒子在立方体内从聚合到扩散的连续变化。它适合用来解释粒子群状态、空间分布和宏观状态变化之间的直观联系。
+
 ## 项目结构
 
 ```text
@@ -60,14 +72,16 @@
 │   ├── position_microstates_two_boxes.html
 │   ├── high_dimensional_energy_sphere.html
 │   ├── solid_liquid_gas_particle_model_v14_embedded_camera_curtain.html
-│   └── v16_second_curtain_more_sensitive.html
+│   ├── v16_second_curtain_more_sensitive.html
+│   ├── deep_ice_cube_gesture_zoom.html
+│   └── particle_cube_condense_diffuse.html
 └── src/
     ├── core/
     ├── modules/
     └── styles/
 ```
 
-`models/` 中还保留了其他实验模型页面，首页开放上面五个入口。
+`models/` 中还保留了其他实验模型页面，首页开放上面七个入口。
 
 ## 修改项目
 
