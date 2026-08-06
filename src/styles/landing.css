@@ -269,6 +269,36 @@ body.landing-page a { color: inherit; }
   height: 100%;
   border: 0;
   background: #050505;
+  pointer-events: none;
+}
+
+.visual-preview-link {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  padding: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  color: #d7d7d7;
+  text-decoration: none;
+}
+
+.visual-preview-link span {
+  padding: 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 3px;
+  background: rgba(5, 5, 5, 0.74);
+  backdrop-filter: blur(12px);
+  font: 700 7px ui-monospace, monospace;
+  letter-spacing: 0.13em;
+  transition: border-color 180ms, background 180ms;
+}
+
+.visual-preview-link:hover span,
+.visual-preview-link:focus-visible span {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .visual-meta {
