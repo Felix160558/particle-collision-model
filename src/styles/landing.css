@@ -8,12 +8,19 @@
   --landing-line-bright: rgba(255, 255, 255, 0.42);
 }
 
+html.landing-document {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 body.landing-page {
   min-width: 320px;
   min-height: 100vh;
   height: auto;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: visible;
   color: var(--landing-text);
   background:
     radial-gradient(circle at 69% 14%, rgba(255, 255, 255, 0.055), transparent 34rem),
@@ -517,6 +524,66 @@ body.landing-page a { color: inherit; }
   .flagship h1 { max-width: 760px; }
   .flagship-visual { min-height: 660px; margin-top: 0; }
   .section-heading { grid-template-columns: 1fr; gap: 24px; }
+}
+
+@media (min-width: 1081px) and (min-height: 760px) {
+  .learning-section {
+    min-height: 100svh;
+    padding: clamp(36px, 5vh, 56px) 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .section-heading {
+    margin-bottom: clamp(22px, 3vh, 34px);
+  }
+
+  .section-heading h2 {
+    margin-top: 13px;
+    font-size: clamp(38px, 4vw, 58px);
+  }
+
+  .section-heading > p {
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  .model-grid {
+    min-height: 0;
+    grid-template-rows: repeat(2, minmax(250px, 1fr));
+  }
+
+  .model-card {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .model-card h3 {
+    margin-bottom: 8px;
+    font-size: clamp(22px, 2vw, 30px);
+  }
+
+  .model-card > div:nth-of-type(2) > p:last-child {
+    max-width: 430px;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .model-action {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+
+  .model-glyph {
+    top: 32px;
+    right: 30px;
+    transform: scale(0.76);
+    transform-origin: top right;
+  }
+
+  .model-card:hover .model-glyph {
+    transform: scale(0.78) rotate(2deg);
+  }
 }
 
 @media (max-width: 760px) {
