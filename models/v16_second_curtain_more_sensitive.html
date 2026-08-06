@@ -17,6 +17,29 @@
     #startBtn { position: fixed; z-index: 6; left: 50%; bottom: 28px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.88); padding: 11px 17px; font-size: 13px; letter-spacing: .03em; cursor: pointer; backdrop-filter: blur(16px); box-shadow: 0 20px 60px rgba(0,0,0,.32); }
     #startBtn.hidden { display:none; }
 
+    .library-exit {
+      position: fixed;
+      z-index: 8;
+      top: 18px;
+      left: 20px;
+      min-height: 36px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      background: rgba(5,7,11,.48);
+      color: rgba(255,255,255,.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      font: 700 9px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .12em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color .2s, border-color .2s, background .2s;
+    }
+    .library-exit:hover { color:#fff; border-color:rgba(255,255,255,.52); background:rgba(255,255,255,.09); }
+
     #curtainLayer { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
     #curtainStack {
       position: absolute;
@@ -128,6 +151,7 @@
   </style>
 </head>
 <body>
+  <a class="library-exit" href="../index.html">← Thermodynamics Library</a>
   <video id="webcam" autoplay playsinline muted></video>
   <div id="shade"></div>
   <div id="threeMount"></div>

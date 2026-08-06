@@ -1,91 +1,107 @@
-# Particle Collision Model
+# Microscopic Thermodynamics Laboratory
 
-这是一个面向热学、统计物理、物态变化与粒子结构教学的静态网页项目。项目用 HTML、CSS、JavaScript 和 Three.js 构建交互模型，适合直接发布到 GitHub Pages。
+A curated collection of static WebGL teaching experiments for kinetic theory, statistical mechanics, phase change, and molecular energy distributions. The project uses HTML, CSS, JavaScript, Three.js, and WebXR, and deploys directly to GitHub Pages without a build step.
 
-## 如何运行
+## Live site
 
-发布到 GitHub Pages 后，打开仓库对应的 Pages 地址即可访问首页。
-
-本地预览时，在项目根目录使用任意静态文件服务打开入口页：
+After GitHub Pages is enabled for this repository, the main entrance is:
 
 ```text
-./index.html
+https://felix160558.github.io/particle-collision-model/
 ```
 
-项目中的页面、样式和脚本都使用相对路径，方便部署在 GitHub Pages 的仓库子路径下。
+The home page is the public learning path. Experimental and superseded files may remain in the repository for reference, but they are intentionally absent from the main navigation.
 
-## 第一版模型
+## Featured laboratory
 
-### 单粒子碰撞模型
+### Maxwell–Boltzmann Distribution Visualizer
 
-入口：`./models/single_ball_pressure.html`
+The flagship experience makes the complete statistical chain visible:
 
-这个模型展示单个粒子在容器中运动并与壁面碰撞的过程。它强调压强来自粒子碰撞时的动量交换，而不是来自某个抽象的静态量。
+```text
+particle motion → velocity → kinetic energy → counted bins → smooth curve
+```
 
-### 微观态计数模型
+The distribution is not inserted as a pre-drawn theoretical graphic. The histogram is accumulated from 10,000 particle samples, and its counted bin tops are then interpolated into the displayed curve.
 
-入口：`./models/position_microstates_two_boxes.html`
+- Homepage preview: `./maxwell-boltzmann/desktop.html?embed=1`
+- Full desktop laboratory: `./maxwell-boltzmann/desktop.html`
+- Meta Quest / WebXR laboratory: `./maxwell-boltzmann/vr.html`
+- Desktop / VR selector: `./maxwell-boltzmann/index.html`
 
-这个模型展示粒子分布在两个盒子中时，不同宏观分布对应的微观排列数。它用计数方式解释为什么接近均匀分布的宏观态最常见。
+The desktop and VR pages use relative local paths. Three.js is pinned to version `0.161.0` on jsDelivr, so deployment under the repository subdirectory works without path rewriting.
 
-### 高维能量球模型
+## Core learning path
 
-入口：`./models/high_dimensional_energy_sphere.html`
+The public collection keeps four older models whose teaching roles do not overlap:
 
-这个模型把总能量约束表示为高维空间中的几何结构，用投影帮助理解单个粒子的能量为何会呈现统计分布。
+1. **Single-Particle Pressure** — momentum transfer and the microscopic origin of pressure.
+2. **Two-Box Microstates** — multiplicity, macrostates, and the emergence of equilibrium.
+3. **High-Dimensional Energy Sphere** — total-energy constraints and statistical energy sharing.
+4. **Solid · Liquid · Gas** — particle arrangement and motion during a simplified phase-change demonstration.
 
-### 固液气三态变化模型
+The v16 phase model is the sole public phase-change version. The earlier v14 page, the deep-ice lattice study, and the particle condense/diffuse study remain archived in `models/` but are no longer promoted as separate core lessons.
 
-入口：`./models/solid_liquid_gas_particle_model_v14_embedded_camera_curtain.html`
+## Local preview
 
-这个模型把粒子排列和运动方式用于固体、液体、气体三种状态的变化演示。加热时，粒子从有序振动逐步进入更自由的流动和扩散；冷却时，粒子从气体或液体状态逐步回到更聚集、更有序的状态。
+ES modules should be served through a local static server rather than opened with a `file://` URL.
 
-### 固液气三态变化模型 v16
+From the repository root:
 
-入口：`./models/v16_second_curtain_more_sensitive.html`
+```bash
+python3 -m http.server 4174
+```
 
-这是固液气三态变化模型的更敏感交互版本，用第二幕布的控制方式强化加热、冷却和相变过程的响应。它适合比较不同交互灵敏度下，相变演示是否更容易被课堂观察和操作。
+Then open:
 
-### 深冰晶格手势模型
+```text
+http://127.0.0.1:4174/
+```
 
-入口：`./models/deep_ice_cube_gesture_zoom.html`
+An internet connection is required on first load because Three.js and its WebXR addons are delivered by jsDelivr.
 
-这个模型用冰晶格立方体表现有序结构和粒子散开之间的转化。它适合展示晶体结构、粒子排列、聚合与分散，以及手势缩放带来的空间观察变化。
+## GitHub Pages deployment
 
-### 粒子立方体聚散模型
+1. Push the repository to GitHub.
+2. Open **Settings → Pages**.
+3. Under **Build and deployment**, choose **Deploy from a branch**.
+4. Select the default branch and the repository root (`/`).
+5. Save and open the published HTTPS URL after deployment completes.
 
-入口：`./models/particle_cube_condense_diffuse.html`
+GitHub Pages supplies the secure context required by immersive WebXR. Open the published URL in Meta Quest Browser, choose **Meta Quest VR**, and then use **ENTER VR** when WebXR support is detected.
 
-这个模型展示大量粒子在立方体内从聚合到扩散的连续变化。它适合用来解释粒子群状态、空间分布和宏观状态变化之间的直观联系。
+## Compatibility
 
-## 项目结构
+- Desktop laboratory: modern WebGL browser; mouse, trackpad, or touch.
+- Mobile: compact desktop layout with a short device note on the home page.
+- Immersive VR: Meta Quest Browser, HTTPS, and WebXR support.
+- No WebXR: the VR page provides a friendly status message and remains available as a non-immersive spatial preview.
+- No JavaScript: navigation remains readable, but the scientific simulations cannot run.
+
+## Project structure
 
 ```text
 .
-├── index.html
-├── README.md
+├── index.html                         Curated laboratory home page
+├── maxwell-boltzmann/
+│   ├── desktop.html                   Full desktop laboratory
+│   ├── vr.html                        Meta Quest / WebXR laboratory
+│   ├── index.html                     Desktop / VR selector
+│   └── *.js, *.css                    Self-contained simulation assets
+├── models/                            Core and archived experiment pages
+├── src/
+│   ├── core/                          Shared Three.js and interaction helpers
+│   ├── modules/                       Modular experiment implementations
+│   └── styles/                        Shared model and landing-page styles
 ├── CONTRIBUTING.md
-├── docs/
-│   └── codex-guide.md
-├── models/
-│   ├── single_ball_pressure.html
-│   ├── position_microstates_two_boxes.html
-│   ├── high_dimensional_energy_sphere.html
-│   ├── solid_liquid_gas_particle_model_v14_embedded_camera_curtain.html
-│   ├── v16_second_curtain_more_sensitive.html
-│   ├── deep_ice_cube_gesture_zoom.html
-│   └── particle_cube_condense_diffuse.html
-└── src/
-    ├── core/
-    ├── modules/
-    └── styles/
+└── docs/codex-guide.md
 ```
 
-`models/` 中还保留了其他实验模型页面，首页开放上面七个入口。
+## Scientific boundaries
 
-## 修改项目
+- A visual teaching model is not described as a full molecular-dynamics calculation unless it actually implements that physics.
+- The Maxwell–Boltzmann curve is derived from counted simulated energies, preserving the principle: **the curve is counted, not drawn**.
+- The phase-change page is a qualitative visualization of arrangement and motion, not a universal material phase diagram.
+- Formula symbols and units must keep a stable meaning within each experiment.
 
-如果你要让 AI 或其他贡献者修改项目，请先阅读：
-
-- `./CONTRIBUTING.md`
-- `./docs/codex-guide.md`
+For contribution and maintenance rules, read [`CONTRIBUTING.md`](./CONTRIBUTING.md) and [`docs/codex-guide.md`](./docs/codex-guide.md).

@@ -1,48 +1,63 @@
 # Codex Guide
 
-这份指南用于约束 AI 修改本项目时的行为。目标是让项目可以持续发布到 GitHub Pages，同时保持热学与统计物理表达可靠。
+This guide protects the scientific logic, visual hierarchy, and static GitHub Pages deployment of the Microscopic Thermodynamics Laboratory.
 
-## 发布规则
+## Public information architecture
 
-- 不要求用户运行构建流程；项目第一版应能作为静态站点发布。
-- 站内链接必须使用相对路径。
-- 首页入口从 `./index.html` 出发，模型页面放在 `./models/`。
-- 模型页面引用共享代码时，从模型页使用 `../src/...`。
-- 不把本机绝对路径、临时文件路径或本机预览地址写进正式页面。
+The homepage is intentionally curated. Its hierarchy is:
 
-## 科学规则
+1. One large Maxwell–Boltzmann flagship experience.
+2. One visible scientific pipeline: motion → velocity → kinetic energy → counting → distribution.
+3. Four core, non-repeating older experiments:
+   - single-particle pressure;
+   - two-box microstates;
+   - high-dimensional energy sphere;
+   - solid/liquid/gas v16.
 
-- 不能把示意动画说成严格数值模拟，除非代码确实实现了相应物理模型。
-- 单粒子碰撞模型应围绕动量交换、碰撞频率和压强直觉展开。
-- 微观态计数模型应围绕宏观态、微观态数量和最可几分布展开。
-- 高维能量球模型应围绕总能量约束、相空间几何和边缘分布直觉展开。
-- 固液气三态变化模型应围绕粒子排列、粒子运动幅度、分子间相互作用强弱和相变过程展开。
-- 加热与冷却演示不能暗示所有物质都有完全相同的熔点、沸点或相变路径。
-- 晶格和粒子立方体模型应区分有序排列、聚合、扩散和观察尺度变化，不把视觉聚散直接等同于完整热力学过程。
-- 使用公式时要保持变量含义稳定，同一变量不能在同一模型中代表两件事。
-- 不使用会误导学习者的视觉比喻；如果是简化，必须在说明中保持克制和准确。
+Do not restore the v14 phase model, deep-ice lattice model, particle condense/diffuse model, or placeholder distribution modules to the public homepage without a new teaching reason. Archived source files may remain in `models/` for reference.
 
-## 视觉规则
+## Maxwell–Boltzmann rules
 
-- 模型页的第一视觉重点必须是交互模型本身。
-- 控件、读数和公式面板不能遮挡关键运动区域。
-- 卡片只用于首页模型入口，不把模型画面包在装饰性卡片里。
-- 首页保留核心入口：单粒子碰撞、微观态计数、高维能量球、固液气三态变化、固液气三态变化 v16、深冰晶格手势模型和粒子立方体聚散模型。
-- 页面必须在窄屏下保持标题、说明和按钮不重叠。
-- 不添加与物理概念无关的装饰元素。
+- Keep the flagship files self-contained under `maxwell-boltzmann/`.
+- `desktop.html?embed=1` is the homepage composition of the real desktop experiment, not a decorative imitation.
+- The embedded mode may hide controls and auto-run the experiment, but it must use the same sampled energies and histogram logic as the full laboratory.
+- Never replace the counted histogram with a precomputed Maxwell–Boltzmann curve.
+- The smooth curve must continue to originate from the counted bin values.
+- Preserve both the full desktop and Meta Quest VR routes.
 
-## 代码规则
+## Deployment rules
 
-- 优先复用 `src/core/` 中的场景、公式、粒子和手势工具。
-- 新模型应在 `src/modules/` 中导出模块对象，并在 `src/modules/registry.js` 注册。
-- 模型 HTML 文件应放在 `models/`，并通过 `data-module-id` 指定模块。
-- 避免引入大型依赖；确实需要依赖时，说明它解决的具体问题。
-- 保持文件名小写，单词用下划线或连字符，沿用项目现有命名风格。
+- Keep the project static and build-free.
+- Use relative paths for all repository pages and local assets.
+- Model pages live in `models/`; shared code lives in `src/`.
+- Never write local machine paths or preview ports into production links.
+- Pin CDN module versions. The desktop and VR versions of Three.js must remain compatible.
+- Test from a local HTTP server, not by double-clicking HTML files.
 
-## AI 修改检查清单
+## Scientific rules
 
-- 是否仍可作为静态 GitHub Pages 项目发布。
-- 首页是否保留当前指定的核心模型入口。
-- 新增或修改的站内链接是否全部为相对路径。
-- 科学解释是否避免过度承诺。
-- 视觉层级是否让学习者先看到模型，再看到说明。
+- Do not describe an illustrative animation as a rigorous numerical simulation unless the implemented physics supports that claim.
+- Pressure lessons should distinguish an individual momentum-transfer event from the time-averaged macroscopic pressure.
+- Microstate lessons should distinguish microstates, macrostates, multiplicity, and probability.
+- High-dimensional energy geometry should be presented as intuition for constrained velocity space and marginal distributions.
+- The phase model should describe particle arrangement and motion qualitatively; it is not a universal substance-specific phase diagram.
+- Keep variables, units, and proportionalities consistent within each experiment.
+
+## Visual rules
+
+- Use a restrained black, white, and neutral-gray scientific laboratory palette.
+- The interactive phenomenon is always the first visual focus.
+- The homepage should not return to a flat grid of equally weighted cards.
+- The Maxwell–Boltzmann flagship should occupy approximately half or more of the main desktop composition.
+- Controls, metrics, and formulas must not cover the core simulation area.
+- English is the primary interface language. Short Chinese support text may be added only where it improves teaching clarity.
+- Narrow screens must keep titles, links, controls, and compatibility notes readable.
+
+## Change checklist
+
+- Does the home page still expose one flagship plus exactly four core older models?
+- Does the flagship still show that the curve emerges from counted energy bins?
+- Do all internal links work under a GitHub Pages repository subdirectory?
+- Do desktop, mobile, and WebXR-unavailable states remain understandable?
+- Are scientific simplifications described honestly?
+- Is the site still usable with no build command or backend?

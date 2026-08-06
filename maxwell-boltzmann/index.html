@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Choose the desktop or immersive VR edition of the Maxwell–Boltzmann Distribution Visualizer."
+    />
+    <title>Maxwell–Boltzmann Laboratory</title>
+    <link rel="stylesheet" href="./launcher.css" />
+  </head>
+  <body>
+    <div class="ambient-grid" aria-hidden="true"></div>
+
+    <main class="launcher-shell">
+      <header class="launcher-header">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p>MOLECULAR KINETICS LABORATORY</p>
+            <h1>Maxwell–Boltzmann <span>Distribution Visualizer</span></h1>
+          </div>
+        </div>
+        <a class="library-return" href="../index.html">← THERMODYNAMICS LIBRARY</a>
+      </header>
+
+      <section class="launcher-intro" aria-labelledby="launcherTitle">
+        <p class="section-index">SELECT LABORATORY MODE</p>
+        <h2 id="launcherTitle">The curve is not drawn.<br /><span>The curve is counted.</span></h2>
+        <p>
+          Follow microscopic particle motion into kinetic-energy statistics,
+          discrete bins, and finally a continuous distribution.
+        </p>
+      </section>
+
+      <section class="mode-grid" aria-label="Choose a laboratory mode">
+        <a class="mode-card desktop-mode" href="./desktop.html">
+          <div class="mode-visual desktop-visual" aria-hidden="true">
+            <div class="mini-box">
+              <i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="mini-distribution">
+              <b style="--h: 20%"></b><b style="--h: 58%"></b><b style="--h: 84%"></b>
+              <b style="--h: 66%"></b><b style="--h: 42%"></b><b style="--h: 25%"></b>
+              <b style="--h: 14%"></b><b style="--h: 8%"></b>
+            </div>
+          </div>
+          <div class="mode-copy">
+            <div class="mode-heading">
+              <span>01 / DESKTOP</span>
+              <i>WEBGL</i>
+            </div>
+            <h3>Desktop Simulation</h3>
+            <p>Full particle controls, temperature comparison, accumulated 10,000-sample histogram, and curve formation.</p>
+            <ul>
+              <li>Mouse · trackpad · touch</li>
+              <li>100 / 500 / 1,000 visible particles</li>
+              <li>Temperature curve comparison</li>
+            </ul>
+            <strong class="mode-action">OPEN DESKTOP LAB <span>→</span></strong>
+          </div>
+        </a>
+
+        <a class="mode-card vr-mode" href="./vr.html">
+          <div class="mode-visual vr-visual" aria-hidden="true">
+            <div class="headset">
+              <span></span><i></i><b></b>
+            </div>
+            <div class="spatial-panel left"></div>
+            <div class="spatial-panel right"></div>
+          </div>
+          <div class="mode-copy">
+            <div class="mode-heading">
+              <span>02 / IMMERSIVE</span>
+              <i>WEBXR</i>
+            </div>
+            <h3>Meta Quest VR Laboratory</h3>
+            <p>A spatial particle container, floating energy panel, and controller-driven statistical workflow.</p>
+            <ul>
+              <li>Meta Quest Browser over HTTPS</li>
+              <li>Controller rays and supported hand input</li>
+              <li>Desktop preview when WebXR is unavailable</li>
+            </ul>
+            <strong class="mode-action">OPEN VR LAB <span>↗</span></strong>
+          </div>
+        </a>
+      </section>
+
+      <section class="compatibility" aria-label="Compatibility information">
+        <div><span>SCIENTIFIC PIPELINE</span><strong>motion → energy → bins → curve</strong></div>
+        <div><span>DEPLOYMENT</span><strong>static files · no build step</strong></div>
+        <div><span>VR REQUIREMENT</span><strong id="xrCapability">checking this browser…</strong></div>
+      </section>
+
+      <p class="mobile-note">
+        On phones, use the desktop laboratory in its compact layout. Immersive mode requires a WebXR headset browser.
+      </p>
+
+      <footer>
+        <span>m = 1 · E<sub>k</sub> = ½m|v|²</span>
+        <span>THREE.JS · STATIC GITHUB PAGES</span>
+      </footer>
+    </main>
+
+    <noscript><p class="noscript-note">JavaScript is required for the scientific simulations. The mode links above remain available.</p></noscript>
+    <script src="./launcher.js" defer></script>
+  </body>
+</html>

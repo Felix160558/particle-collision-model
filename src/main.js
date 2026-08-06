@@ -29,6 +29,11 @@ let activeModule = null;
 let activeRuntime = null;
 const requestedModuleId = document.body.dataset.moduleId || new URLSearchParams(window.location.search).get("module") || modules[0].id;
 const modelPagePrefix = document.body.dataset.moduleId ? "./" : "./models/";
+const publicModuleIds = [
+  "single_ball_pressure",
+  "position_microstates_two_boxes",
+  "high_dimensional_energy_sphere"
+];
 
 function activateModule(module) {
   activeRuntime?.dispose?.();
@@ -45,7 +50,9 @@ function activateModule(module) {
   }
 }
 
-for (const module of modules) {
+for (const moduleId of publicModuleIds) {
+  const module = modules.find((candidate) => candidate.id === moduleId);
+  if (!module) continue;
   const link = document.createElement("a");
   link.dataset.moduleId = module.id;
   link.href = modelPagePrefix + module.id + ".html";
@@ -53,6 +60,12 @@ for (const module of modules) {
   link.title = module.description;
   moduleNav.append(link);
 }
+
+const phaseLink = document.createElement("a");
+phaseLink.href = modelPagePrefix + "v16_second_curtain_more_sensitive.html";
+phaseLink.textContent = "Solid · Liquid · Gas";
+phaseLink.title = "Particle arrangement and motion across three phases";
+moduleNav.append(phaseLink);
 
 formulaToggle.addEventListener("click", () => {
   formulaLayer.setVisible(!formulaLayer.visible);

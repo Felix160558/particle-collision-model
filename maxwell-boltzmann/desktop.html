@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A particle-first Maxwell–Boltzmann distribution teaching visualizer."
+    />
+    <title>Maxwell–Boltzmann Distribution Visualizer</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <script>
+      if (new URLSearchParams(window.location.search).get("embed") === "1") {
+        document.documentElement.classList.add("embed-mode");
+      }
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient-grid" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">Molecular Kinetics Laboratory</p>
+            <h1>Maxwell–Boltzmann <span>Distribution Visualizer</span></h1>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <a class="mode-home" href="../index.html">THERMODYNAMICS LIBRARY</a>
+          <div class="principle">
+            <span class="principle-dot" aria-hidden="true"></span>
+            <p><strong>The curve is not drawn.</strong> The curve is counted.</p>
+          </div>
+          <a class="vr-entry" href="./vr.html"><span>IMMERSIVE</span> VR LAB ↗</a>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Simulation workspace">
+        <article class="panel simulation-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-index">01 / PARTICLE BOX</p>
+              <h2>3D Particle Simulation</h2>
+            </div>
+            <div class="live-state" id="liveState">
+              <span aria-hidden="true"></span>
+              <strong id="stateLabel">READY</strong>
+            </div>
+          </div>
+
+          <div class="viewport-wrap">
+            <div
+              id="threeViewport"
+              class="three-viewport"
+              role="img"
+              aria-label="Transparent cubic gas container with moving particles"
+            ></div>
+
+            <div class="viewport-overlay overlay-top-left" aria-hidden="true">
+              <span>GAS CONTAINER</span>
+              <b>10 × 10 × 10 a.u.</b>
+            </div>
+
+            <div class="viewport-overlay overlay-bottom-left" aria-hidden="true">
+              <span>CAMERA</span>
+              <b>DRAG TO ORBIT · SCROLL TO ZOOM</b>
+            </div>
+
+            <div class="axis-key" aria-hidden="true">
+              <span class="axis-x">X</span>
+              <span class="axis-y">Y</span>
+              <span class="axis-z">Z</span>
+            </div>
+
+            <div class="ensemble-indicator" id="ensembleIndicator" hidden>
+              <span>STATISTICAL ENSEMBLE</span>
+              <strong id="ensembleBatchReadout">01 / 10</strong>
+              <i aria-hidden="true"></i>
+            </div>
+
+            <div class="start-curtain" id="startCurtain">
+              <div class="curtain-orbit" aria-hidden="true">
+                <span></span><i></i><b></b>
+              </div>
+              <p>MICROSCOPIC SYSTEM READY</p>
+              <h3>Release the particles</h3>
+              <button class="primary-button" id="startButton" type="button">
+                <span>START SIMULATION</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <div class="webgl-message" id="webglMessage" hidden>
+              <strong>3D view unavailable</strong>
+              <span>Please enable WebGL or try a modern browser.</span>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel statistics-panel" aria-label="Energy statistics panel">
+          <div class="panel-heading compact">
+            <div>
+              <p class="panel-index">02 / ENERGY DATA</p>
+              <h2>Energy Statistics</h2>
+            </div>
+            <span class="phase-tag live-phase">MODULE 2</span>
+          </div>
+
+          <div class="system-state-row">
+            <div class="metric-primary">
+              <span>Total particles</span>
+              <strong id="particleReadout">100</strong>
+              <small>molecules</small>
+            </div>
+
+            <div class="temperature-control">
+              <div class="temperature-heading">
+                <label for="temperatureSlider">TEMPERATURE</label>
+                <output id="temperatureReadout" for="temperatureSlider">300 K</output>
+              </div>
+              <input id="temperatureSlider" type="range" min="100" max="900" step="10" value="300" />
+              <div class="temperature-scale"><span>100 K</span><b>σ<sub>v</sub> ∝ √T</b><span>900 K</span></div>
+            </div>
+          </div>
+
+          <div class="velocity-analysis" aria-label="Real-time velocity calculation">
+            <div class="formula-readout">
+              <span>VELOCITY MAGNITUDE</span>
+              <strong>|v| = √(v<sub>x</sub>² + v<sub>y</sub>² + v<sub>z</sub>²)</strong>
+            </div>
+
+            <div class="velocity-summary">
+              <div><span>Mean speed</span><strong id="averageSpeed">0.000</strong><small>a.u.</small></div>
+              <div><span>Maximum speed</span><strong id="maximumSpeed">0.000</strong><small>a.u.</small></div>
+            </div>
+
+          </div>
+
+          <div class="energy-analysis" aria-label="Real-time kinetic energy statistics">
+            <div class="formula-readout energy-formula">
+              <span>KINETIC ENERGY · MASS m = 1</span>
+              <strong>E<sub>k</sub> = ½m|v|²</strong>
+            </div>
+
+            <div class="velocity-summary energy-summary">
+              <div><span>Mean kinetic energy</span><strong id="averageEnergy">0.000</strong><small>a.u.</small></div>
+              <div><span>Maximum energy</span><strong id="maximumEnergy">0.000</strong><small>a.u.</small></div>
+            </div>
+
+            <div class="energy-list">
+              <div class="energy-list-heading">
+                <span>ENERGY LIST</span><i>LIVE SAMPLE</i>
+              </div>
+              <div class="energy-table energy-table-head"><span>PARTICLE</span><span>|v|</span><span>E<sub>k</sub></span></div>
+              <div class="energy-table"><strong>P–001</strong><span id="sampleSpeed0">0.000</span><b id="sampleEnergy0">0.000</b></div>
+              <div class="energy-table"><strong>P–002</strong><span id="sampleSpeed1">0.000</span><b id="sampleEnergy1">0.000</b></div>
+              <div class="energy-table"><strong>P–003</strong><span id="sampleSpeed2">0.000</span><b id="sampleEnergy2">0.000</b></div>
+            </div>
+          </div>
+
+          <div class="data-pipeline" aria-label="Scientific data pipeline">
+            <p>OBSERVATION PIPELINE</p>
+            <ol>
+              <li class="active"><span>01</span><strong>Particle motion</strong><i>LIVE</i></li>
+              <li class="active"><span>02</span><strong>Velocity magnitude</strong><i>LIVE</i></li>
+              <li class="active"><span>03</span><strong>Kinetic energy</strong><i>LIVE</i></li>
+              <li class="active"><span>04</span><strong>Energy counting</strong><i id="histogramPipelineState">READY</i></li>
+              <li><span>05</span><strong>Smooth interpolation</strong><i id="curvePipelineState">LOCKED</i></li>
+            </ol>
+          </div>
+
+          <div class="science-note">
+            <span aria-hidden="true">i</span>
+            <p>The thermostat rescales velocity components by √(T₂/T₁); energy scales with T.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="panel distribution-panel" aria-label="Energy histogram construction">
+        <div class="distribution-copy">
+          <p class="panel-index">03 / ENERGY COUNTING</p>
+          <h2>Discrete energy histogram</h2>
+          <p>Particle energies are sorted into 40 fine intervals. Each bar is counted from the microscopic system.</p>
+          <div class="histogram-meta">
+            <span><b id="histogramBinCount">40</b> ENERGY BINS</span>
+            <span id="histogramRange">RANGE 0—20 · ΔE 0.5</span>
+            <span id="histogramProgress">0 / 10,000 SAMPLES</span>
+            <span id="overflowReadout">E &gt; 20: 0</span>
+            <span id="yScaleReadout">SHARED Y SCALE</span>
+          </div>
+          <button
+            class="compare-toggle"
+            id="compareToggle"
+            type="button"
+            role="switch"
+            aria-checked="false"
+            aria-label="Compare with previous temperature curve"
+          >
+            <span class="toggle-track" aria-hidden="true"><i></i></span>
+            <span class="toggle-copy"><b>COMPARE</b><small id="compareModeHint">KEEP PREVIOUS TEMPERATURE</small></span>
+          </button>
+        </div>
+
+        <div class="histogram-chart" id="histogramChart" aria-label="Kinetic energy histogram">
+          <div class="chart-y-label">COUNT</div>
+          <div class="chart-grid-lines"><i></i><i></i><i></i></div>
+          <div class="histogram-bars" id="histogramBars"></div>
+          <svg class="histogram-reference" id="histogramReference" aria-hidden="true" preserveAspectRatio="none">
+            <path id="histogramReferencePath"></path>
+          </svg>
+          <svg class="histogram-curve" id="histogramCurve" aria-hidden="true" preserveAspectRatio="none">
+            <path id="histogramCurvePath"></path>
+            <g id="histogramCurvePoints"></g>
+          </svg>
+          <div class="curve-legend" id="curveLegend" hidden>
+            <span class="reference"><i></i>PREVIOUS <b id="referenceTemperature">—</b></span>
+            <span class="current"><i></i>CURRENT <b id="currentCurveTemperature">—</b></span>
+          </div>
+          <div class="histogram-axis"><span>0</span><span id="histogramAxisMax">E<sub>max</sub></span></div>
+          <div class="chart-x-label">KINETIC ENERGY →</div>
+          <div class="histogram-status" id="histogramStatus">
+            <strong>ENERGY DATA READY</strong>
+            <span>Press Generate Distribution to begin counting</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="control-dock" aria-label="Simulation controls">
+        <div class="particle-control">
+          <div class="count-control">
+            <span class="control-label">PARTICLE COUNT</span>
+            <div class="segmented-control" role="group" aria-label="Particle count">
+              <button class="count-button active" type="button" data-count="100" aria-pressed="true">100</button>
+              <button class="count-button" type="button" data-count="500" aria-pressed="false">500</button>
+              <button class="count-button" type="button" data-count="1000" aria-pressed="false">1000</button>
+            </div>
+          </div>
+
+          <button
+            class="vector-toggle"
+            id="velocityToggle"
+            type="button"
+            role="switch"
+            aria-checked="false"
+            aria-label="Show velocity shells"
+          >
+            <span class="toggle-track" aria-hidden="true"><i></i></span>
+            <span class="toggle-copy"><b>VELOCITY SHELLS</b><small id="velocityModeHint">RADIUS ∝ |v| · ALL PARTICLES</small></span>
+          </button>
+        </div>
+
+        <div class="transport-controls">
+          <button class="transport-button" id="playButton" type="button" aria-label="Play" aria-pressed="false">
+            <span class="play-icon" aria-hidden="true"></span> PLAY
+          </button>
+          <button class="transport-button" id="pauseButton" type="button" aria-label="Pause" aria-pressed="false">
+            <span class="pause-icon" aria-hidden="true"></span> PAUSE
+          </button>
+          <button class="transport-button generate" id="generateButton" type="button">
+            COUNT 10,000 PARTICLES
+          </button>
+          <button class="transport-button curve" id="curveButton" type="button" disabled>
+            FORM SMOOTH CURVE
+          </button>
+          <button class="transport-button reset" id="resetButton" type="button">
+            <span aria-hidden="true">↻</span> RESET
+          </button>
+        </div>
+
+        <div class="performance-readout" aria-live="polite">
+          <span>SIMULATION</span>
+          <strong id="performanceLabel">STANDBY</strong>
+        </div>
+      </footer>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
