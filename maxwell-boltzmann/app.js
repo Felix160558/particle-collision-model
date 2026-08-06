@@ -520,8 +520,10 @@ function attachPointerControls() {
   viewport.addEventListener("pointercancel", endDrag);
 
   viewport.addEventListener("wheel", (event) => {
+    if (!event.shiftKey) return;
     event.preventDefault();
-    cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.008, 10.2, 22);
+    const wheelDelta = event.deltaY || event.deltaX;
+    cameraDistance = THREE.MathUtils.clamp(cameraDistance + wheelDelta * 0.008, 10.2, 22);
     updateCamera();
   }, { passive: false });
 }
