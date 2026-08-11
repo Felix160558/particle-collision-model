@@ -1,4 +1,4 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+import * as THREE from "./vendor/three.module.min.js";
 
 const EMBED_MODE = new URLSearchParams(window.location.search).get("embed") === "1";
 
@@ -12,6 +12,7 @@ const MAX_VISIBLE_VECTORS = 160;
 
 const viewport = document.querySelector("#threeViewport");
 const startCurtain = document.querySelector("#startCurtain");
+const startStatus = document.querySelector("#startStatus");
 const startButton = document.querySelector("#startButton");
 const playButton = document.querySelector("#playButton");
 const pauseButton = document.querySelector("#pauseButton");
@@ -56,6 +57,8 @@ const liveState = document.querySelector("#liveState");
 const stateLabel = document.querySelector("#stateLabel");
 const performanceLabel = document.querySelector("#performanceLabel");
 const webglMessage = document.querySelector("#webglMessage");
+const webglMessageTitle = document.querySelector("#webglMessageTitle");
+const webglMessageDetail = document.querySelector("#webglMessageDetail");
 
 let renderer;
 let scene;
@@ -128,19 +131,59 @@ function particleColor(speed) {
   return color;
 }
 
+function showWebglFailure(title, detail, error) {
+  webglMessageTitle.textContent = title;
+  webglMessageDetail.textContent = detail;
+  webglMessage.hidden = false;
+  startCurtain.classList.add("hidden");
+  stateLabel.textContent = "UNAVAILABLE";
+  performanceLabel.textContent = "3D OFFLINE";
+  if (error) console.error(error);
+}
+
+function createRenderer() {
+  const rendererOptions = [
+    { antialias: true, alpha: true, powerPreference: "high-performance" },
+    { antialias: false, alpha: true, powerPreference: "default" },
+  ];
+  let lastError;
+
+  for (const options of rendererOptions) {
+    try {
+      return new THREE.WebGLRenderer(options);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Unable to create a WebGL renderer.");
+}
+
 function initThree() {
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer = createRenderer();
   } catch (error) {
-    webglMessage.hidden = false;
-    console.error(error);
+    showWebglFailure(
+      "3D renderer unavailable",
+      "WebGL could not start on this device. Close other graphics-heavy tabs, then retry.",
+      error
+    );
     return false;
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)").matches;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarsePointer ? 1.5 : 2));
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   viewport.appendChild(renderer.domElement);
+  renderer.domElement.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    isRunning = false;
+    showWebglFailure(
+      "3D context interrupted",
+      "The browser released its graphics context. Tap retry to restore the experiment."
+    );
+  });
 
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x050505, 0.025);
@@ -161,9 +204,16 @@ function initThree() {
   createParticles(particleCount);
   attachPointerControls();
 
-  const resizeObserver = new ResizeObserver(resizeRenderer);
-  resizeObserver.observe(viewport);
+  if ("ResizeObserver" in window) {
+    const resizeObserver = new ResizeObserver(resizeRenderer);
+    resizeObserver.observe(viewport);
+  } else {
+    window.addEventListener("resize", resizeRenderer, { passive: true });
+  }
   resizeRenderer();
+  stateLabel.textContent = "READY";
+  startStatus.textContent = "MICROSCOPIC SYSTEM READY";
+  startButton.disabled = false;
   requestAnimationFrame(animate);
   return true;
 }
@@ -984,6 +1034,7 @@ function setVelocityVectors(nextVisible) {
 }
 
 function animate(now) {
+  if (!renderer || !scene || !camera) return;
   const deltaTime = Math.min((now - lastFrameTime) / 1000, 0.033);
   lastFrameTime = now;
 
@@ -1026,9 +1077,10 @@ countButtons.forEach((button) => {
 
 invalidateHistogram();
 temperatureSlider.style.setProperty("--temperature-progress", "25%");
-initThree();
+const threeReady = initThree();
+window.dispatchEvent(new CustomEvent("mb-visualizer-ready", { detail: { ok: threeReady } }));
 
-if (EMBED_MODE) {
+if (EMBED_MODE && threeReady) {
   window.requestAnimationFrame(() => {
     startSimulation();
     window.setTimeout(async () => {

@@ -102,10 +102,10 @@ The project is safe to publish below a repository path such as `/REPOSITORY-NAME
 - Internal pages use relative links such as `./desktop.html` and `./vr.html`
 - Local CSS and JavaScript use `./` relative paths
 - No link assumes deployment at the domain root
-- Three.js CDN imports use absolute HTTPS URLs
+- The desktop page loads its pinned Three.js `0.161.0` runtime from `./vendor/`
 - The VR import map pins both `three` and `three/addons/` to version `0.161.0`
 
-An internet connection is required when first loading the simulations because Three.js modules are delivered by jsDelivr.
+The desktop laboratory and homepage preview no longer require a third-party CDN. The VR edition still needs internet access to retrieve its pinned WebXR addons from jsDelivr.
 
 ## Mobile and compatibility behavior
 
@@ -128,6 +128,7 @@ app.js           Desktop Three.js simulation and statistics
 vr.html          WebXR laboratory
 vr.css           VR page and fallback interface styling
 vr.js            VR Three.js scene, controls, and statistics
+vendor/          Pinned desktop Three.js runtime and MIT license
 README.md        Preview, deployment, and compatibility guide
 ```
 
@@ -135,7 +136,7 @@ README.md        Preview, deployment, and compatibility guide
 
 ### The page is blank
 
-Use a local static server or GitHub Pages instead of a `file://` URL. Confirm that the device can reach `cdn.jsdelivr.net`.
+Use a local static server or GitHub Pages instead of a `file://` URL. The desktop page displays a recovery panel if its local 3D module or WebGL renderer cannot start.
 
 ### The VR button says “VR NOT SUPPORTED”
 

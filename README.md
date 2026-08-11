@@ -29,7 +29,7 @@ The distribution is not inserted as a pre-drawn theoretical graphic. The histogr
 - Meta Quest / WebXR laboratory: `./maxwell-boltzmann/vr.html`
 - Desktop / VR selector: `./maxwell-boltzmann/index.html`
 
-The desktop and VR pages use relative local paths. Three.js is pinned to version `0.161.0` on jsDelivr, so deployment under the repository subdirectory works without path rewriting.
+The desktop page uses a repository-local, pinned copy of Three.js `0.161.0`, so its particle model and the homepage preview do not depend on a third-party CDN. The VR edition keeps its pinned WebXR addon imports on jsDelivr. All project routes use relative paths and remain safe when GitHub Pages publishes the site below the repository subdirectory.
 
 ## Core learning path
 
@@ -58,7 +58,7 @@ Then open:
 http://127.0.0.1:4174/
 ```
 
-An internet connection is required on first load because Three.js and its WebXR addons are delivered by jsDelivr.
+The desktop particle laboratory is served entirely from this repository. The VR edition still needs access to jsDelivr for its Three.js WebXR addons.
 
 ## GitHub Pages deployment
 
@@ -87,6 +87,7 @@ GitHub Pages supplies the secure context required by immersive WebXR. Open the p
 │   ├── desktop.html                   Full desktop laboratory
 │   ├── vr.html                        Meta Quest / WebXR laboratory
 │   ├── index.html                     Desktop / VR selector
+│   ├── vendor/                        Pinned desktop Three.js runtime and license
 │   └── *.js, *.css                    Self-contained simulation assets
 ├── models/                            Core and archived experiment pages
 ├── src/

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,13 +8,12 @@
       content="A particle-first Maxwell–Boltzmann distribution teaching visualizer."
     />
     <title>Maxwell–Boltzmann Distribution Visualizer</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <script>
       if (new URLSearchParams(window.location.search).get("embed") === "1") {
         document.documentElement.classList.add("embed-mode");
       }
     </script>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260812" />
   </head>
   <body>
     <div class="ambient-grid" aria-hidden="true"></div>
@@ -48,7 +47,7 @@
             </div>
             <div class="live-state" id="liveState">
               <span aria-hidden="true"></span>
-              <strong id="stateLabel">READY</strong>
+              <strong id="stateLabel">LOADING</strong>
             </div>
           </div>
 
@@ -86,17 +85,19 @@
               <div class="curtain-orbit" aria-hidden="true">
                 <span></span><i></i><b></b>
               </div>
-              <p>MICROSCOPIC SYSTEM READY</p>
+              <p id="startStatus">INITIALIZING 3D SYSTEM</p>
               <h3>Release the particles</h3>
-              <button class="primary-button" id="startButton" type="button">
+              <button class="primary-button" id="startButton" type="button" disabled>
                 <span>START SIMULATION</span>
                 <span aria-hidden="true">→</span>
               </button>
             </div>
 
-            <div class="webgl-message" id="webglMessage" hidden>
-              <strong>3D view unavailable</strong>
-              <span>Please enable WebGL or try a modern browser.</span>
+            <div class="webgl-message" id="webglMessage" role="status" aria-live="polite" hidden>
+              <span class="failure-index">3D SYSTEM / RECOVERY</span>
+              <strong id="webglMessageTitle">3D view unavailable</strong>
+              <span id="webglMessageDetail">Please enable WebGL or try a modern browser.</span>
+              <button id="webglRetryButton" type="button">RETRY 3D VIEW&nbsp; →</button>
             </div>
           </div>
         </article>
@@ -278,6 +279,46 @@
       </footer>
     </main>
 
-    <script type="module" src="./app.js"></script>
+    <script>
+      (() => {
+        const failurePanel = document.querySelector("#webglMessage");
+        const failureTitle = document.querySelector("#webglMessageTitle");
+        const failureDetail = document.querySelector("#webglMessageDetail");
+        const startCurtain = document.querySelector("#startCurtain");
+        const stateLabel = document.querySelector("#stateLabel");
+        const retryButton = document.querySelector("#webglRetryButton");
+        let visualizerResponded = false;
+
+        const showFailure = (title, detail) => {
+          failureTitle.textContent = title;
+          failureDetail.textContent = detail;
+          failurePanel.hidden = false;
+          startCurtain.classList.add("hidden");
+          stateLabel.textContent = "UNAVAILABLE";
+        };
+
+        window.addEventListener("mb-visualizer-ready", (event) => {
+          visualizerResponded = true;
+          if (!event.detail?.ok) {
+            showFailure(
+              "3D renderer unavailable",
+              "WebGL could not start on this device. Close other graphics-heavy tabs, then retry."
+            );
+          }
+        }, { once: true });
+
+        window.setTimeout(() => {
+          if (!visualizerResponded) {
+            showFailure(
+              "3D module did not start",
+              "Reload the page. If the problem continues, try Safari, Chrome, or Edge with hardware acceleration enabled."
+            );
+          }
+        }, 8000);
+
+        retryButton.addEventListener("click", () => window.location.reload());
+      })();
+    </script>
+    <script type="module" src="./app.js?v=20260812"></script>
   </body>
 </html>

@@ -208,10 +208,15 @@ h1 span { color: #999999; font-weight: 400; }
 
 .primary-button { min-width: 220px; height: 44px; padding: 0 16px 0 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 3px; color: #ffffff; background: rgba(255, 255, 255, 0.08); cursor: pointer; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; transition: background 0.2s, box-shadow 0.2s, transform 0.2s; }
 .primary-button:hover { background: rgba(255, 255, 255, 0.16); box-shadow: 0 0 28px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
+.primary-button:disabled { color: #606060; border-color: #303030; background: rgba(255, 255, 255, 0.025); cursor: wait; box-shadow: none; transform: none; }
 
-.webgl-message { position: absolute; z-index: 5; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; background: #080808; color: var(--muted); }
+.webgl-message { position: absolute; z-index: 5; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 28px; text-align: center; background: radial-gradient(circle at 50% 45%, #121212, #050505 72%); color: var(--muted); }
 .webgl-message[hidden] { display: none; }
-.webgl-message strong { color: var(--text); }
+.webgl-message .failure-index { color: #666; font: 700 7px ui-monospace, monospace; letter-spacing: .2em; }
+.webgl-message strong { color: var(--text); font-size: clamp(17px, 2vw, 24px); font-weight: 420; }
+.webgl-message > span:not(.failure-index) { max-width: 430px; font-size: 11px; line-height: 1.65; }
+.webgl-message button { min-width: 170px; height: 38px; margin-top: 9px; border: 1px solid #555; border-radius: 3px; color: #ddd; background: rgba(255,255,255,.05); cursor: pointer; font: 700 8px ui-monospace, monospace; letter-spacing: .14em; }
+.webgl-message button:hover { color: #fff; border-color: #888; background: rgba(255,255,255,.09); }
 
 .statistics-panel {
   position: absolute;
