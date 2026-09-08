@@ -6,7 +6,7 @@
     <meta name="description" content="An immersive WebXR Maxwell–Boltzmann distribution laboratory for Meta Quest." />
     <title>Maxwell–Boltzmann VR Laboratory</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="stylesheet" href="./vr.css" />
+    <link rel="stylesheet" href="./vr.css?v=20260908" />
     <script type="importmap">
       {
         "imports": {
@@ -44,6 +44,8 @@
           <button type="button" data-action="count">COUNT 10,000</button>
           <button type="button" data-action="curve" disabled>FORM CURVE</button>
           <button type="button" data-action="shells" aria-pressed="false">VELOCITY SHELLS</button>
+          <button type="button" data-action="particle-view" aria-pressed="false">ENTER PARTICLE VIEW</button>
+          <button type="button" data-action="follow" aria-pressed="false" disabled>FOLLOW PARTICLE · OFF</button>
         </div>
         <p class="desktop-hint">In Quest: aim with either controller and press the trigger. Hand tracking is requested when supported.</p>
       </section>
@@ -61,6 +63,6 @@
       </div>
     </main>
 
-    <script type="module" src="./vr.js"></script>
+    <script type="module" src="./vr.js?v=20260908"></script>
   </body>
 </html>

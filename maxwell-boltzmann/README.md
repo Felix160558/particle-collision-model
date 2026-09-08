@@ -56,6 +56,11 @@ Changing temperature rescales velocity by `√(T₂/T₁)`, so kinetic energy sc
 - Meta Quest controller-ray selection
 - Optional WebXR hand-tracking feature request when supported
 - Desktop mirror controls when immersive WebXR is unavailable
+- High-contrast, fog-independent spatial labels, a 2048-pixel statistics texture, and 1.25× XR framebuffer scale (subject to headset limits)
+- **ENTER PARTICLE VIEW** moves the viewpoint to a molecule inside the box; **RETURN TO LAB VIEW** restores the external view
+- **FOLLOW PARTICLE** follows that molecule's position without forcing camera rotation. Headset entry defaults to stationary observation; following is opt-in. Desktop entry enables following by default.
+
+Particle view changes only the viewer transform and hides the observed molecule's own geometry. It does not change particle velocities, energies, counts, or the statistical model. The spatial control console travels with the viewer in immersive particle mode, keeping the return button accessible. Headset movement and looking around remain controlled by WebXR.
 
 The VR page provides a friendly status message when the browser lacks WebXR, no headset is connected, or the page is not served from a secure context.
 

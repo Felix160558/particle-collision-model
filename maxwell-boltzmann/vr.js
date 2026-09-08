@@ -55,6 +55,19 @@ let curveStartTime = 0;
 let curveProgress = 0;
 let panelDirty = true;
 let lastPanelDrawTime = 0;
+let viewerRig;
+let controlConsole;
+let particleView = false;
+let followParticle = false;
+let viewParticleIndex = 0;
+const interiorAnchor = new THREE.Vector3();
+const previousAnchor = new THREE.Vector3();
+const savedCameraPosition = new THREE.Vector3();
+const savedCameraTarget = new THREE.Vector3();
+const desktopSessionPosition = new THREE.Vector3();
+const desktopSessionTarget = new THREE.Vector3();
+const headOffset = new THREE.Vector3();
+const boxOrigin = new THREE.Vector3(0, 1.42, -2.25);
 
 const positions = new Float32Array(PARTICLE_COUNT * 3);
 const velocities = new Float32Array(PARTICLE_COUNT * 3);
@@ -94,7 +107,9 @@ function makeTextPlane(text, width, height, options = {}) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide, depthWrite: false });
+  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  texture.generateMipmaps = false;
+  const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, fog: false, toneMapped: false });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
   mesh.userData.canvas = canvas;
   mesh.userData.context = context;
@@ -106,16 +121,16 @@ function makeTextPlane(text, width, height, options = {}) {
 function drawTextPlane(mesh, text, options = {}) {
   const { canvas, context, texture } = mesh.userData;
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = options.background ?? "rgba(7,7,7,.94)";
+  context.fillStyle = options.background ?? "#181818";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.strokeStyle = options.border ?? "rgba(255,255,255,.28)";
   context.lineWidth = 3;
   context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
   context.fillStyle = options.color ?? "#d8d8d8";
-  context.font = `${options.weight ?? 600} ${options.fontSize ?? Math.round(canvas.height * .25)}px ui-monospace, monospace`;
+  context.font = `${options.weight ?? 600} ${Math.max(options.fontSize ?? 0, Math.round(canvas.height * .33))}px ui-monospace, monospace`;
   context.textAlign = options.align ?? "center";
   context.textBaseline = "middle";
-  context.fillText(text, options.align === "left" ? 30 : canvas.width / 2, canvas.height / 2);
+  context.fillText(text, options.align === "left" ? 30 : canvas.width / 2, canvas.height / 2, canvas.width - 48);
   texture.needsUpdate = true;
 }
 
@@ -168,8 +183,8 @@ function createParticleBox() {
   glowEdges.scale.setScalar(1.01);
   group.add(glowEdges);
 
-  const geometry = new THREE.IcosahedronGeometry(PARTICLE_RADIUS, 1);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const geometry = new THREE.SphereGeometry(PARTICLE_RADIUS, 20, 14);
+  const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .48, metalness: 0 });
   particleMesh = new THREE.InstancedMesh(geometry, material, PARTICLE_COUNT);
   particleMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   particleMesh.frustumCulled = false;
@@ -206,12 +221,15 @@ function updateParticleMatrices() {
   for (let index = 0; index < PARTICLE_COUNT; index += 1) {
     const offset = index * 3;
     matrix.makeTranslation(positions[offset], positions[offset + 1], positions[offset + 2]);
+    // Hide only the observed molecule's geometry, never its physical data.
+    if (particleView && index === viewParticleIndex) matrix.makeScale(0, 0, 0);
     particleMesh.setMatrixAt(index, matrix);
 
     if (shellsVisible) {
       const radius = Math.max(speedAt(index) * .025, .006);
       matrix.makeScale(radius, radius, radius);
       matrix.setPosition(positions[offset], positions[offset + 1], positions[offset + 2]);
+      if (particleView && index === viewParticleIndex) matrix.makeScale(0, 0, 0);
       shellMesh.setMatrixAt(index, matrix);
     }
   }
@@ -242,17 +260,18 @@ function updateParticles(deltaTime) {
 
 function createControlConsole() {
   const consoleGroup = new THREE.Group();
+  controlConsole = consoleGroup;
   consoleGroup.position.set(-1.32, 1.55, -2.12);
   consoleGroup.rotation.y = .2;
   scene.add(consoleGroup);
 
   const back = new THREE.Mesh(
-    new THREE.PlaneGeometry(.82, 1.42),
-    new THREE.MeshBasicMaterial({ color: 0x070707, transparent: true, opacity: .92, side: THREE.DoubleSide }),
+    new THREE.PlaneGeometry(.82, 1.86),
+    new THREE.MeshBasicMaterial({ color: 0x121212, side: THREE.DoubleSide, fog: false }),
   );
   consoleGroup.add(back);
   const frame = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.PlaneGeometry(.82, 1.42)),
+    new THREE.EdgesGeometry(new THREE.PlaneGeometry(.82, 1.86)),
     new THREE.LineBasicMaterial({ color: 0x777777, transparent: true, opacity: .45 }),
   );
   frame.position.z = .002;
@@ -274,10 +293,12 @@ function createControlConsole() {
     ["count", "COUNT 10,000", -.16],
     ["curve", "FORM CURVE", -.32],
     ["shells", "VELOCITY SHELLS · OFF", -.48],
+    ["particle-view", "ENTER PARTICLE VIEW", -.64],
+    ["follow", "FOLLOW PARTICLE · OFF", -.80],
   ];
 
   definitions.forEach(([action, label, y]) => {
-    const button = makeTextPlane(label, .7, .12, { background: "#0b0b0b", border: "rgba(255,255,255,.28)", color: "#c8c8c8", fontSize: 38 });
+    const button = makeTextPlane(label, .7, .12, { background: "#242424", border: "#999", color: "#fff", fontSize: 52 });
     button.position.set(0, y, .018);
     button.userData.action = action;
     button.userData.enabled = action !== "curve";
@@ -291,16 +312,19 @@ function createControlConsole() {
 
 function createStatisticsPanel() {
   panelCanvas = document.createElement("canvas");
-  panelCanvas.width = 1024;
-  panelCanvas.height = 1024;
+  panelCanvas.width = 2048;
+  panelCanvas.height = 2048;
   panelContext = panelCanvas.getContext("2d");
+  panelContext.scale(2, 2);
   panelTexture = new THREE.CanvasTexture(panelCanvas);
   panelTexture.colorSpace = THREE.SRGBColorSpace;
   panelTexture.minFilter = THREE.LinearFilter;
+  panelTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  panelTexture.generateMipmaps = false;
 
   const panel = new THREE.Mesh(
     new THREE.PlaneGeometry(1.18, 1.18),
-    new THREE.MeshBasicMaterial({ map: panelTexture, transparent: true, side: THREE.DoubleSide, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ map: panelTexture, side: THREE.DoubleSide, fog: false, toneMapped: false }),
   );
   panel.position.set(1.35, 1.53, -2.13);
   panel.rotation.y = -.2;
@@ -310,8 +334,8 @@ function createStatisticsPanel() {
 
 function drawStatisticsPanel() {
   const context = panelContext;
-  const width = panelCanvas.width;
-  const height = panelCanvas.height;
+  const width = 1024;
+  const height = 1024;
   context.clearRect(0, 0, width, height);
   context.fillStyle = "rgba(7,7,7,.95)";
   context.fillRect(0, 0, width, height);
@@ -319,7 +343,7 @@ function drawStatisticsPanel() {
   context.lineWidth = 3;
   context.strokeRect(2, 2, width - 4, height - 4);
 
-  context.fillStyle = "#777";
+  context.fillStyle = "#bcbcbc";
   context.font = "700 25px ui-monospace, monospace";
   context.fillText("ENERGY STATISTICS / IMMERSIVE", 54, 64);
   context.fillStyle = "#f2f2f2";
@@ -332,7 +356,7 @@ function drawStatisticsPanel() {
   context.lineTo(970, 151);
   context.stroke();
 
-  context.fillStyle = "#666";
+  context.fillStyle = "#bcbcbc";
   context.font = "600 23px ui-monospace, monospace";
   context.fillText("TEMPERATURE", 54, 198);
   context.fillText("MEAN ENERGY", 365, 198);
@@ -343,7 +367,7 @@ function drawStatisticsPanel() {
   context.fillText(meanEnergy.toFixed(3), 365, 242);
   context.fillText(maximumEnergy.toFixed(3), 680, 242);
 
-  context.fillStyle = "#666";
+  context.fillStyle = "#bcbcbc";
   context.font = "600 22px ui-monospace, monospace";
   context.fillText(`COUNTED ${sampleCount.toLocaleString()} / ${SAMPLE_TARGET.toLocaleString()}`, 54, 300);
   context.textAlign = "right";
@@ -408,13 +432,13 @@ function drawStatisticsPanel() {
     context.shadowBlur = 0;
   }
 
-  context.fillStyle = "#5f5f5f";
+  context.fillStyle = "#bcbcbc";
   context.font = "600 21px ui-monospace, monospace";
   context.fillText("0", chartX, 912);
   context.textAlign = "right";
   context.fillText(`${ENERGY_MAX} KINETIC ENERGY →`, chartX + chartWidth, 912);
   context.textAlign = "left";
-  context.fillStyle = distributionReady ? "#d6d6d6" : "#666";
+  context.fillStyle = distributionReady ? "#ffffff" : "#bcbcbc";
   context.fillText(collecting ? `COUNTING ENSEMBLE ${Math.min(collectionBatch + 1, 10)} / 10` : distributionReady ? curveMode ? "CONTINUOUS CURVE FROM COUNTED BINS" : "HISTOGRAM COMPLETE · CURVE READY" : "COUNT MICROSCOPIC ENERGIES TO BEGIN", 54, 970);
 
   panelTexture.needsUpdate = true;
@@ -543,18 +567,24 @@ function setTemperature(nextTemperature) {
 }
 
 function updateControlLabels() {
-  const runButton = buttonMeshes.get("toggle-run");
-  const curveButton = buttonMeshes.get("curve");
-  const shellButton = buttonMeshes.get("shells");
-  if (runButton) drawTextPlane(runButton, running ? "PAUSE" : "PLAY", { background: "#0b0b0b", border: "rgba(255,255,255,.28)", color: "#d8d8d8", fontSize: 38 });
-  if (curveButton) {
-    curveButton.userData.enabled = distributionReady && !curveAnimating;
-    drawTextPlane(curveButton, curveAnimating ? "FORMING CURVE…" : curveMode ? "REPLAY CURVE" : "FORM CURVE", {
-      background: "#0b0b0b", border: curveButton.userData.enabled ? "rgba(255,255,255,.42)" : "rgba(255,255,255,.1)",
-      color: curveButton.userData.enabled ? "#ffffff" : "#4b4b4b", fontSize: 38,
-    });
-  }
-  if (shellButton) drawTextPlane(shellButton, `VELOCITY SHELLS · ${shellsVisible ? "ON" : "OFF"}`, { background: "#0b0b0b", border: "rgba(255,255,255,.28)", color: shellsVisible ? "#fff" : "#a0a0a0", fontSize: 34 });
+  buttonMeshes.forEach((button, action) => {
+    if (action === "curve") button.userData.enabled = distributionReady && !curveAnimating;
+    if (action === "count") button.userData.enabled = !collecting;
+    if (action === "follow") button.userData.enabled = particleView;
+    const enabled = button.userData.enabled !== false;
+    const labels = {
+      "toggle-run": running ? "PAUSE" : "PLAY",
+      "temperature-down": "− 100 K",
+      "temperature-up": "+ 100 K",
+      count: collecting ? "COUNTING…" : "COUNT 10,000",
+      curve: curveAnimating ? "FORMING CURVE…" : curveMode ? "REPLAY CURVE" : "FORM CURVE",
+      shells: `VELOCITY SHELLS · ${shellsVisible ? "ON" : "OFF"}`,
+      "particle-view": particleView ? "RETURN TO LAB VIEW" : "ENTER PARTICLE VIEW",
+      follow: `FOLLOW PARTICLE · ${followParticle ? "ON" : "OFF"}`,
+    };
+    drawTextPlane(button, labels[action], { background: "#242424", border: enabled ? "#aaa" : "#555", color: enabled ? "#fff" : "#bbb", fontSize: 52 });
+    button.material.color.setHex(enabled ? 0xffffff : 0xcccccc);
+  });
 
   scene.traverse((object) => {
     if (object.userData.role === "temperature") drawTextPlane(object, `TEMPERATURE · ${temperature} K`, { background: "#090909", border: "rgba(255,255,255,.14)", color: "#fff", fontSize: 37 });
@@ -576,12 +606,29 @@ function updateUI() {
       button.setAttribute("aria-pressed", String(shellsVisible));
       button.textContent = `VELOCITY SHELLS · ${shellsVisible ? "ON" : "OFF"}`;
     }
+    if (action === "particle-view") {
+      button.setAttribute("aria-pressed", String(particleView));
+      button.textContent = particleView ? "RETURN TO LAB VIEW" : "ENTER PARTICLE VIEW";
+    }
+    if (action === "follow") {
+      button.disabled = !particleView;
+      button.setAttribute("aria-pressed", String(followParticle));
+      button.textContent = `FOLLOW PARTICLE · ${followParticle ? "ON" : "OFF"}`;
+    }
   });
   updateControlLabels();
   panelDirty = true;
 }
 
 function performAction(action) {
+  if (action === "particle-view") setParticleView(!particleView);
+  if (action === "follow" && particleView) {
+    followParticle = !followParticle;
+    if (followParticle) {
+      // Resume from the observed molecule without interpolating or changing its trajectory.
+      readParticleAnchor(interiorAnchor);
+    }
+  }
   if (action === "toggle-run") running = !running;
   if (action === "temperature-down") setTemperature(temperature - 100);
   if (action === "temperature-up") setTemperature(temperature + 100);
@@ -595,6 +642,78 @@ function performAction(action) {
   updateUI();
 }
 
+function readParticleAnchor(target) {
+  return target.fromArray(positions, viewParticleIndex * 3).add(boxOrigin);
+}
+
+function setParticleView(enabled) {
+  if (particleView === enabled) return;
+  particleView = enabled;
+  followParticle = enabled && !renderer.xr.isPresenting;
+  if (enabled) {
+    savedCameraPosition.copy(camera.position);
+    savedCameraTarget.copy(orbitControls.target);
+    // Choose a central molecule so entry is away from the container walls.
+    let nearest = Infinity;
+    for (let index = 0; index < PARTICLE_COUNT; index++) {
+      const i = index * 3;
+      const distance = positions[i] ** 2 + positions[i + 1] ** 2 + positions[i + 2] ** 2;
+      if (distance < nearest) { nearest = distance; viewParticleIndex = index; }
+    }
+    readParticleAnchor(interiorAnchor);
+    previousAnchor.copy(interiorAnchor);
+    if (renderer.xr.isPresenting) {
+      // Scale the viewer, not the gas: molecules, velocities and energy remain unchanged.
+      headOffset.copy(renderer.xr.getCamera().position);
+      viewerRig.scale.setScalar(.15);
+      viewerRig.position.copy(interiorAnchor).addScaledVector(headOffset, -.15);
+      viewerRig.add(controlConsole);
+      controlConsole.position.set(headOffset.x - .66, headOffset.y, headOffset.z - 1.25);
+      controlConsole.rotation.set(0, .25, 0);
+      controlConsole.scale.setScalar(.65);
+    } else {
+      camera.position.copy(interiorAnchor);
+      orbitControls.target.copy(interiorAnchor).add(new THREE.Vector3(0, 0, -.12));
+      orbitControls.minDistance = .03;
+      orbitControls.maxDistance = .3;
+      orbitControls.enablePan = false;
+      orbitControls.update();
+    }
+  } else {
+    viewerRig.position.set(0, 0, 0);
+    viewerRig.scale.setScalar(1);
+    scene.add(controlConsole);
+    controlConsole.position.set(-1.32, 1.55, -2.12);
+    controlConsole.rotation.set(0, .2, 0);
+    controlConsole.scale.setScalar(1);
+    camera.position.copy(savedCameraPosition);
+    orbitControls.target.copy(savedCameraTarget);
+    orbitControls.minDistance = 1.6;
+    orbitControls.maxDistance = 5.5;
+    orbitControls.enablePan = true;
+    if (!renderer.xr.isPresenting) orbitControls.update();
+  }
+  controlConsole.traverse((object) => {
+    if (!object.material) return;
+    object.material.depthTest = !(enabled && renderer.xr.isPresenting);
+    object.renderOrder = enabled && renderer.xr.isPresenting ? 100 + Math.round(object.position.z * 1000) : 0;
+  });
+  updateParticleMatrices();
+}
+
+function updateParticleView() {
+  if (!particleView) return;
+  if (followParticle) readParticleAnchor(interiorAnchor);
+  if (renderer.xr.isPresenting) {
+    viewerRig.position.copy(interiorAnchor).addScaledVector(headOffset, -.15);
+  } else {
+    const delta = new THREE.Vector3().subVectors(interiorAnchor, previousAnchor);
+    camera.position.add(delta);
+    orbitControls.target.add(delta);
+  }
+  previousAnchor.copy(interiorAnchor);
+}
+
 function createXRControllers() {
   const controllerFactory = new XRControllerModelFactory();
   const handFactory = new XRHandModelFactory();
@@ -606,16 +725,16 @@ function createXRControllers() {
     const line = new THREE.Line(rayGeometry, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5 }));
     line.scale.z = 4;
     controller.add(line);
-    scene.add(controller);
+    viewerRig.add(controller);
     controllers.push(controller);
 
     const grip = renderer.xr.getControllerGrip(index);
     grip.add(controllerFactory.createControllerModel(grip));
-    scene.add(grip);
+    viewerRig.add(grip);
 
     const hand = renderer.xr.getHand(index);
     try { hand.add(handFactory.createHandModel(hand, "mesh")); } catch (error) { console.info("Hand model unavailable", error); }
-    scene.add(hand);
+    viewerRig.add(hand);
   }
 }
 
@@ -669,27 +788,36 @@ function selectFromController(controller) {
 }
 
 function updateControllerHover() {
-  interactiveMeshes.forEach((mesh) => { mesh.material.opacity = mesh.userData.enabled === false ? .55 : .9; });
+  interactiveMeshes.forEach((mesh) => { mesh.material.opacity = 1; });
   controllers.forEach((controller) => {
     const hit = intersectionsForController(controller).find((intersection) => intersection.object.userData.enabled !== false);
-    if (hit) hit.object.material.opacity = 1;
+    if (hit) hit.object.material.color.setHex(0xffffff);
   });
 }
 
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x030303);
-  scene.fog = new THREE.FogExp2(0x030303, .075);
+  scene.fog = new THREE.FogExp2(0x030303, .025);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  keyLight.position.set(2, 4, 1);
+  scene.add(keyLight);
 
   camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, .01, 60);
   camera.position.set(0, 1.6, .65);
+  viewerRig = new THREE.Group();
+  viewerRig.add(camera);
+  scene.add(viewerRig);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.xr.enabled = true;
   renderer.xr.setReferenceSpaceType("local-floor");
+  renderer.xr.setFramebufferScaleFactor(1.25);
+  renderer.xr.setFoveation(0);
   stage.prepend(renderer.domElement);
 
   orbitControls = new OrbitControls(camera, renderer.domElement);
@@ -703,14 +831,22 @@ function init() {
   updateWebXRSupportMessage();
 
   renderer.xr.addEventListener("sessionstart", () => {
+    if (particleView) setParticleView(false);
+    desktopSessionPosition.copy(camera.position);
+    desktopSessionTarget.copy(orbitControls.target);
     xrState.classList.add("immersive");
     xrState.querySelector("span").textContent = "IMMERSIVE SESSION";
     orbitControls.enabled = false;
+    updateUI();
   });
   renderer.xr.addEventListener("sessionend", () => {
+    if (particleView) setParticleView(false);
+    camera.position.copy(desktopSessionPosition);
+    orbitControls.target.copy(desktopSessionTarget);
     xrState.classList.remove("immersive");
     xrState.querySelector("span").textContent = "DESKTOP PREVIEW";
     orbitControls.enabled = true;
+    updateUI();
   });
 
   createEnvironment();
@@ -722,6 +858,12 @@ function init() {
   updateUI();
 
   desktopButtons.forEach((button) => button.addEventListener("click", () => performAction(button.dataset.action)));
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && particleView && !renderer.xr.isPresenting) {
+      setParticleView(false);
+      updateUI();
+    }
+  });
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -750,6 +892,8 @@ function animate(now) {
     drawStatisticsPanel();
   }
   if (!renderer.xr.isPresenting) orbitControls.update();
+  updateParticleView();
+  viewerRig.updateMatrixWorld(true);
   renderer.render(scene, camera);
 }
 
