@@ -298,6 +298,18 @@
           stateLabel.textContent = "UNAVAILABLE";
         };
 
+        if (window.location.protocol === "file:") {
+          showFailure(
+            "Open the online laboratory",
+            "This downloaded HTML cannot load its 3D modules directly. Open the live website to run the simulation and camera gestures."
+          );
+          retryButton.textContent = "OPEN LIVE LABORATORY →";
+          retryButton.addEventListener("click", () => {
+            window.location.href = "https://felix160558.github.io/particle-collision-model/maxwell-boltzmann/desktop.html?v=20260909c";
+          });
+          return;
+        }
+
         window.addEventListener("mb-visualizer-ready", (event) => {
           visualizerResponded = true;
           if (!event.detail?.ok) {
