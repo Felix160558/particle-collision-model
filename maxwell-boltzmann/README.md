@@ -45,6 +45,18 @@ Changing temperature rescales velocity by `√(T₂/T₁)`, so kinetic energy sc
 - Optional two-temperature curve comparison
 - Mouse, trackpad, touch, play, pause, and reset controls
 
+## Gesture presentation and live curve
+
+Double-click the central desktop particle model to enter the clean presentation. Double-click the model again or press Esc to return. The model remains large, velocity shells are enabled, and a live energy curve appears beside the temperature. No button is added to the main interface.
+
+Allow camera access on GitHub Pages (HTTPS) or localhost. Hold one hand clearly for about 0.35 seconds: open palm heats (36 K/s), fist cools, OK moves closer, and V moves farther away. Temperature is bounded at 100–900 K. Zoom only moves the viewer; temperature rescales molecular velocity by the square root of the temperature ratio. Leaving the view restores the previous camera, shell setting, and play/pause state, while retaining the new temperature.
+
+Every 100 ms, the curve recounts the actual energies of all currently displayed particles in 0.125 a.u. bins. A data-driven, boundary-corrected kernel smoother fits those counts into a nonnegative continuous density. It is an empirical estimate, not an analytical Maxwell–Boltzmann curve. The fit includes particles beyond the displayed 0–20 energy axis; their count is shown separately. The vertical scale is chosen once on entry to accommodate the same system at 100 K, then held fixed throughout heating and cooling. A brief interpolation between successive fits smooths visual motion.
+
+Repeated frames do not add new independent samples: the readout stays at the actual 100, 500, or 1,000 molecules. Smoothing carries estimation bias and finite-sample uncertainty. Wall reflections alone preserve individual energies; changes in the energy distribution here come from the temperature control. The main page's existing ensemble-counting workflow remains separate.
+
+MediaPipe 0.10.14 and the hand model are bundled in `vendor/vision/` and loaded only on entering this view. Camera frames are processed locally, never uploaded or saved. Exiting, hiding, or leaving the page stops the camera. If access is denied or unavailable, an explanatory status and retry link appear. Test physical hand recognition in a browser with camera access; lighting and hand visibility affect recognition.
+
 ## VR edition
 
 - 500 equal-volume particles in a spatial gas container

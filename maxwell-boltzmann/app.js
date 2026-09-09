@@ -1,4 +1,5 @@
 import * as THREE from "./vendor/three.module.min.js";
+import { createGestureView } from "./gesture-view.js";
 
 const EMBED_MODE = new URLSearchParams(window.location.search).get("embed") === "1";
 
@@ -71,6 +72,9 @@ let velocitySampleIndices = [];
 let positions = new Float32Array(0);
 let velocities = new Float32Array(0);
 let particleCount = 100;
+let gestureMode = false;
+let gestureView;
+let gestureRestore;
 let hasStarted = false;
 let isRunning = false;
 let lastFrameTime = performance.now();
@@ -531,7 +535,7 @@ function resizeRenderer() {
 
 function updateCamera() {
   if (!camera) return;
-  const targetX = viewport.clientWidth > 900 ? -1.15 : 0;
+  const targetX = !gestureMode && viewport.clientWidth > 900 ? -1.15 : 0;
   const cosPitch = Math.cos(pitch);
   camera.position.set(
     targetX + Math.sin(yaw) * cosPitch * cameraDistance,
@@ -573,7 +577,7 @@ function attachPointerControls() {
     if (!event.shiftKey) return;
     event.preventDefault();
     const wheelDelta = event.deltaY || event.deltaX;
-    cameraDistance = THREE.MathUtils.clamp(cameraDistance + wheelDelta * 0.008, 10.2, 22);
+    cameraDistance = THREE.MathUtils.clamp(cameraDistance + wheelDelta * 0.008, 10.2, gestureMode ? 38 : 22);
     updateCamera();
   }, { passive: false });
 }
@@ -623,6 +627,8 @@ function setParticleCount(count) {
 }
 
 function setTemperature(nextTemperature) {
+  if (!Number.isFinite(nextTemperature)) return;
+  nextTemperature = THREE.MathUtils.clamp(nextTemperature, 100, 900);
   if (nextTemperature === currentTemperature) return;
   if (compareEnabled) captureCurrentCurveAsReference();
   const velocityScale = Math.sqrt(nextTemperature / currentTemperature);
@@ -632,7 +638,8 @@ function setTemperature(nextTemperature) {
   }
 
   currentTemperature = nextTemperature;
-  temperatureReadout.value = `${nextTemperature} K`;
+  temperatureSlider.value = String(nextTemperature);
+  temperatureReadout.value = `${Math.round(nextTemperature)} K`;
   const progress = ((nextTemperature - Number(temperatureSlider.min)) /
     (Number(temperatureSlider.max) - Number(temperatureSlider.min))) * 100;
   temperatureSlider.style.setProperty("--temperature-progress", `${progress}%`);
@@ -1039,14 +1046,65 @@ function animate(now) {
   lastFrameTime = now;
 
   if (isRunning) updateParticles(deltaTime);
-  if (!isDragging && !dragMoved) {
+  if (!gestureMode && !isDragging && !dragMoved) {
     yaw -= deltaTime * 0.018;
     updateCamera();
   }
 
   renderer.render(scene, camera);
+  gestureView?.draw(now);
   requestAnimationFrame(animate);
 }
+
+function toggleGestureMode(force) {
+  if (!threeReady || EMBED_MODE) return;
+  const next = typeof force === 'boolean' ? force : !gestureMode;
+  if (next === gestureMode) return;
+  if (next) {
+    if (isCollecting) invalidateHistogram('LIVE ENERGY OBSERVATION');
+    gestureRestore = {hasStarted,isRunning,showVelocityVectors,cameraDistance,yaw,pitch,dragMoved,scroll:window.scrollY};
+    gestureMode=true;
+    document.documentElement.classList.add('gesture-mode');
+    startSimulation();
+    setVelocityVectors(true);
+    cameraDistance=25.5;
+    yaw=-.64; pitch=.3;
+    if (!gestureView) gestureView=createGestureView({
+      getEnergies:()=>Array.from({length:particleCount},(_,i)=>.5*speedAt(i)**2),
+      getTemperature:()=>currentTemperature,
+      setTemperature,
+      zoom(direction,dt) {
+        cameraDistance=THREE.MathUtils.clamp(cameraDistance+(direction==='in'?-1:1)*5*dt,10.2,38);
+        updateCamera();
+      },
+    });
+    gestureView.start();
+  } else {
+    gestureMode=false;
+    gestureView.stop();
+    document.documentElement.classList.remove('gesture-mode');
+    hasStarted=gestureRestore.hasStarted;
+    setRunning(gestureRestore.isRunning);
+    startCurtain.classList.toggle('hidden',hasStarted);
+    setVelocityVectors(gestureRestore.showVelocityVectors);
+    ({cameraDistance,yaw,pitch,dragMoved}=gestureRestore);
+    window.scrollTo(0,gestureRestore.scroll);
+  }
+  isDragging=false;
+  resizeRenderer(); updateCamera();
+}
+
+document.querySelector('.viewport-wrap').addEventListener('dblclick',event=>{
+  if(event.target.closest('button,a')) return;
+  event.preventDefault(); toggleGestureMode();
+});
+window.addEventListener('keydown',event=>{
+  if(event.key==='Escape' && gestureMode) toggleGestureMode(false);
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden && gestureMode) toggleGestureMode(false);
+});
+window.addEventListener('pagehide',()=>gestureView?.stop());
 
 startButton.addEventListener("click", startSimulation);
 playButton.addEventListener("click", () => {
