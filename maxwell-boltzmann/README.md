@@ -45,6 +45,8 @@ Changing temperature rescales velocity by `√(T₂/T₁)`, so kinetic energy sc
 - Optional two-temperature curve comparison
 - Mouse, trackpad, touch, play, pause, and reset controls
 
+The observation camera stays still until dragged or zoomed. Box edges use a single antialiased screen-space stroke of constant pixel width, replacing overlapping wireframe layers. Rendering follows the browser's animation-frame scheduling; there is no artificial low frame-rate cap. Energy readouts update on temperature or ensemble changes, since elastic wall reflections preserve speed and energy.
+
 ## Gesture presentation and live curve
 
 Double-click the central desktop particle model to enter the clean presentation. Double-click the model again or press Esc to return. The model remains large, velocity shells are enabled, and a live energy curve appears beside the temperature. No button is added to the main interface.

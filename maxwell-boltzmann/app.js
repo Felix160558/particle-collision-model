@@ -1,5 +1,6 @@
 import * as THREE from "./vendor/three.module.min.js";
 import { createGestureView } from "./gesture-view.js";
+import { createBoxEdges } from "./box-edges.js";
 
 const EMBED_MODE = new URLSearchParams(window.location.search).get("embed") === "1";
 
@@ -64,6 +65,7 @@ const webglMessageDetail = document.querySelector("#webglMessageDetail");
 let renderer;
 let scene;
 let camera;
+let boxEdges;
 let particleMesh;
 let velocityLines;
 let velocityLinePositions = new Float32Array(0);
@@ -237,42 +239,8 @@ function createContainer() {
   });
   scene.add(new THREE.Mesh(volumeGeometry, volumeMaterial));
 
-  function addEdgeLayer(scale, opacity, colorValue) {
-    const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE));
-    const edgeMaterial = new THREE.LineBasicMaterial({
-      color: colorValue,
-      transparent: true,
-      opacity,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const lines = new THREE.LineSegments(edges, edgeMaterial);
-    lines.scale.setScalar(scale);
-    scene.add(lines);
-  }
-
-  addEdgeLayer(1, 0.68, 0xffffff);
-  addEdgeLayer(1.012, 0.12, 0xffffff);
-  addEdgeLayer(0.988, 0.08, 0xffffff);
-
-  const rodMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.18,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const rodGeometry = new THREE.CylinderGeometry(0.018, 0.018, BOX_SIZE, 8, 1, true);
-  const h = HALF_BOX;
-  const addRod = (x, y, z, rotationX, rotationZ) => {
-    const rod = new THREE.Mesh(rodGeometry, rodMaterial);
-    rod.position.set(x, y, z);
-    rod.rotation.set(rotationX, 0, rotationZ);
-    scene.add(rod);
-  };
-  for (const y of [-h, h]) for (const z of [-h, h]) addRod(0, y, z, 0, Math.PI / 2);
-  for (const x of [-h, h]) for (const z of [-h, h]) addRod(x, 0, z, 0, 0);
-  for (const x of [-h, h]) for (const y of [-h, h]) addRod(x, y, 0, Math.PI / 2, 0);
+  boxEdges=createBoxEdges(BOX_SIZE);
+  scene.add(boxEdges);
 
   const innerGeometry = new THREE.BoxGeometry(BOX_SIZE - 0.12, BOX_SIZE - 0.12, BOX_SIZE - 0.12, 5, 5, 5);
   const wireMaterial = new THREE.MeshBasicMaterial({
@@ -521,13 +489,15 @@ function updateParticles(deltaTime) {
     updateVelocityVectors();
     updateVelocityShells();
   }
-  updateStatisticsReadout();
+  // Elastic wall reflections do not change speeds or energies. Readouts are
+  // refreshed when temperature or the particle ensemble changes instead.
 }
 
 function resizeRenderer() {
   if (!renderer || !camera) return;
   const width = Math.max(viewport.clientWidth, 1);
   const height = Math.max(viewport.clientHeight, 1);
+  if(boxEdges) boxEdges.material.uniforms.resolution.value.set(width,height);
   renderer.setSize(width, height, false);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
@@ -536,13 +506,14 @@ function resizeRenderer() {
 function updateCamera() {
   if (!camera) return;
   const targetX = !gestureMode && viewport.clientWidth > 900 ? -1.15 : 0;
+  const targetY = gestureMode ? -0.6 : 0;
   const cosPitch = Math.cos(pitch);
   camera.position.set(
     targetX + Math.sin(yaw) * cosPitch * cameraDistance,
-    Math.sin(pitch) * cameraDistance,
+    targetY + Math.sin(pitch) * cameraDistance,
     Math.cos(yaw) * cosPitch * cameraDistance,
   );
-  camera.lookAt(targetX, 0, 0);
+  camera.lookAt(targetX, targetY, 0);
 }
 
 function attachPointerControls() {
@@ -1046,10 +1017,7 @@ function animate(now) {
   lastFrameTime = now;
 
   if (isRunning) updateParticles(deltaTime);
-  if (!gestureMode && !isDragging && !dragMoved) {
-    yaw -= deltaTime * 0.018;
-    updateCamera();
-  }
+  // A stationary observation camera keeps the container fixed; orbit is manual.
 
   renderer.render(scene, camera);
   gestureView?.draw(now);
@@ -1067,7 +1035,7 @@ function toggleGestureMode(force) {
     document.documentElement.classList.add('gesture-mode');
     startSimulation();
     setVelocityVectors(true);
-    cameraDistance=25.5;
+    cameraDistance=24.5;
     yaw=-.64; pitch=.3;
     if (!gestureView) gestureView=createGestureView({
       getEnergies:()=>Array.from({length:particleCount},(_,i)=>.5*speedAt(i)**2),

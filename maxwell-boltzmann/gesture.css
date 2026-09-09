@@ -4,17 +4,17 @@
 .gesture-brand { position:absolute; top:30px; left:3.4vw; font-size:17px; font-weight:400; letter-spacing:-.025em; }
 .gesture-brand span { display:block; margin-top:8px; font-size:8px; letter-spacing:.18em; color:#737373; }
 .gesture-return { position:absolute; top:33px; right:3.4vw; color:#888; font-size:10px; }
-.gesture-data { position:absolute; width:35vw; right:4vw; top:49%; transform:translateY(-50%); }
+.gesture-data { position:absolute; width:28vw; right:3vw; top:49%; transform:translateY(-50%); }
 .gesture-temperature-label { color:#929292; font-size:9px; letter-spacing:.17em; }
-.gesture-temperature { margin-top:10px; display:flex; align-items:baseline; gap:12px; font-size:clamp(46px,5.3vw,78px); font-weight:300; line-height:1.05; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
-.gesture-temperature small { font-size:20px; font-weight:300; letter-spacing:0; color:#a5a5a5; }
+.gesture-temperature { margin-top:8px; display:flex; align-items:baseline; gap:10px; font-size:clamp(36px,3.7vw,54px); font-weight:300; line-height:1.05; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
+.gesture-temperature small { font-size:16px; font-weight:300; letter-spacing:0; color:#a5a5a5; }
 .gesture-response { margin-top:15px; color:#9a9a9a; font-size:11px; min-height:16px; }
 .gesture-retry { pointer-events:auto; background:transparent; border:0; border-bottom:1px solid #777; color:#ddd; padding:4px 0; margin:7px 0 0; cursor:pointer; font-size:11px; }
 .gesture-retry[hidden] { display:none; }
-.gesture-curve-title { display:flex; justify-content:space-between; align-items:center; margin-top:44px; font-size:14px; color:#d8d8d8; font-weight:400; }
+.gesture-curve-title { display:flex; justify-content:space-between; align-items:center; margin-top:30px; font-size:13px; color:#d8d8d8; font-weight:400; }
 .gesture-live { font-size:10px; color:#aaa; }
 .gesture-live::before { content:''; display:inline-block; width:4px; height:4px; background:#ddd; border-radius:50%; margin:0 6px 2px 0; }
-.gesture-data canvas { display:block; width:100%; height:clamp(190px,31vh,300px); margin-top:22px; }
+.gesture-data canvas { display:block; width:100%; height:clamp(170px,26vh,240px); margin-top:18px; }
 .gesture-caption { margin-top:14px; display:flex; justify-content:space-between; font-size:10px; color:#aaa; }
 .gesture-estimate { margin-top:8px; font-size:9px; color:#737373; }
 .gesture-legend { position:absolute; bottom:30px; left:3.4vw; right:3.4vw; display:flex; justify-content:center; gap:34px; font-size:10px; color:#777; }
@@ -27,7 +27,7 @@ html.gesture-mode .viewport-overlay,html.gesture-mode .axis-key,html.gesture-mod
 html.gesture-mode .start-curtain { display:none !important; }
 html.gesture-mode .app-shell { position:fixed; inset:0; width:100%; height:100%; margin:0; padding:0; min-height:0; background:#050505; }
 html.gesture-mode .workspace,html.gesture-mode .simulation-panel { position:absolute; inset:0; width:100%; height:100%; min-height:0; margin:0; border:0; box-shadow:none; background:none; }
-html.gesture-mode .viewport-wrap { position:absolute; left:0; top:7%; width:62%; height:85%; min-height:0; background:none; }
+html.gesture-mode .viewport-wrap { position:absolute; left:0; top:5%; width:70%; height:88%; min-height:0; background:none; }
 html.gesture-mode .viewport-wrap::before { display:none; }
 @media(max-width:760px) {
   .gesture-brand { top:20px; left:6vw; font-size:14px; }
