@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hydrogen–Iodine Reaction Laboratory</title>
+  <meta name="description" content="A counted particle model of activation energy, reversible hydrogen–iodine reaction, and energy conservation.">
+  <link rel="stylesheet" href="./styles.css?v=20260812">
+  <link rel="stylesheet" href="./gesture.css?v=20260909c">
+  <link rel="stylesheet" href="./reaction.css?v=20261014g">
+</head>
+<body>
+<div class="ambient-grid" aria-hidden="true"></div>
+<main class="app-shell">
+  <header class="topbar">
+    <div class="brand-lockup"><span class="brand-mark" aria-hidden="true"></span><div>
+      <p class="eyebrow">MOLECULAR REACTION LABORATORY</p><h1>Hydrogen–Iodine <span>Collision Laboratory</span></h1>
+    </div></div>
+    <div class="topbar-actions"><a class="mode-home" href="../index.html#models">← LEARNING PATH</a><div class="reaction-equation">H₂ + I₂ ⇌ 2HI</div><button id="diffuseToggle" class="diffuse-toggle" aria-pressed="false" title="Hide all particles and show only the purple colour of I₂; depth follows its actual concentration">DIFFUSE VIEW <span aria-hidden="true"></span></button></div>
+  </header>
+  <section class="workspace" aria-label="Simulation workspace">
+    <article class="panel simulation-panel">
+      <div class="panel-heading"><div><p class="panel-index">01 / REACTIVE PARTICLE BOX</p><h2>Motion. Collision. Bond exchange.</h2></div><div class="live-state" id="liveState"><span></span><strong id="stateLabel">LOADING</strong></div></div>
+      <div class="viewport-wrap">
+        <div class="three-viewport" id="threeViewport" role="img" aria-label="Hydrogen, iodine and hydrogen iodide molecules in a cubic container"></div>
+        <div class="viewport-overlay overlay-top-left"><span id="phaseReadout">MOLECULAR MIXTURE</span><b>10 × 10 × 10 nm</b></div>
+        <div class="viewport-overlay overlay-bottom-left"><span>OBSERVATION</span><b>DRAG TO ORBIT · SHIFT + SCROLL TO ZOOM · DOUBLE-CLICK FOR GESTURES</b></div>
+        <div class="start-curtain" id="startCurtain"><div class="curtain-orbit"><span></span><i></i><b></b></div><p id="startStatus">INITIALIZING 3D SYSTEM</p><h3>Let the molecules meet.</h3><button class="primary-button" id="startButton" disabled>START SIMULATION →</button></div>
+        <div class="webgl-message" id="failure" hidden role="status"><strong>Unable to open the laboratory</strong><span id="failureDetail">Use the online site or a local web server.</span><a href="https://felix160558.github.io/particle-collision-model/maxwell-boltzmann/reaction.html">OPEN LIVE LABORATORY →</a></div>
+      </div>
+    </article>
+    <aside class="panel statistics-panel" aria-label="Reaction statistics">
+      <div class="panel-heading compact"><div><p class="panel-index">02 / LIVE CHEMISTRY</p><h2 id="speciesTitle">Current molecular inventory</h2></div></div>
+      <div class="reaction-species" aria-label="Live species counts">
+        <div><span class="molecule-key h2"></span><span>H₂</span><strong id="countH2">50</strong></div>
+        <div><span class="molecule-key i2"></span><span>I₂</span><strong id="countI2">50</strong></div>
+        <div><span class="molecule-key hi"></span><span>HI</span><strong id="countHI">0</strong></div>
+      </div>
+      <div class="atomic-counts" id="atomicCounts" hidden>H <strong id="countH">0</strong> <span>·</span> I <strong id="countI">0</strong></div>
+      <div class="temperature-control reaction-temperature"><div class="temperature-heading"><label for="temperatureSlider">TEMPERATURE TARGET</label><output id="temperatureReadout">0 K</output></div>
+        <input id="temperatureSlider" type="range" min="0" max="10000" step="50" value="0"><div class="temperature-scale"><span>0 K</span><b>v ∝ √(T/m)</b><span>10,000 K</span></div>
+      </div>
+      <div class="reaction-barriers"><div><span>Ea →</span><strong>170</strong><small>kJ mol⁻¹</small></div><div><span>Ea ←</span><strong>183</strong><small>kJ mol⁻¹</small></div></div>
+      <div class="reaction-counters"><div><span>Forward events</span><strong id="forwardCount">0</strong></div><div><span>Reverse events</span><strong id="reverseCount">0</strong></div></div>
+      <div class="reaction-exchange"><span>EFFECTIVE COLLISIONS · LAST 3 s</span>
+        <table aria-label="Successful reaction collisions in the last three active playback seconds"><thead><tr><th>Forward →</th><th>Reverse ←</th><th>Total</th></tr></thead><tbody><tr><td id="effectiveForward">0</td><td id="effectiveReverse">0</td><td id="effectiveTotal">0</td></tr></tbody></table>
+        <small id="exchangeState">Collecting 0.0 / 3.0 s</small>
+      </div>
+      <div class="reaction-stoichiometry" id="stoichiometryReadout">1 H₂ + 1 I₂ ⇌ 2 HI · count audit passed</div>
+      <div class="reaction-contact"><span>LAST REACTIVE-SPECIES COLLISION</span><strong id="collisionReadout">Waiting for contact</strong><small id="collisionDecision">Energy and orientation are tested at contact.</small></div>
+      <div class="reaction-energy"><div><span>Mean kinetic energy</span><b><strong id="meanEnergy">0</strong> kJ mol⁻¹</b></div><div><span>Kinetic temperature</span><b id="kineticTemperature">0 K</b></div><div><span>Energy balance error</span><b id="balanceError">0.000%</b></div><div><span>Thermostat work</span><b id="externalWork">0 aJ</b></div></div>
+      <p class="reaction-model-note" id="modelNote">Collision teaching model · equilibrium composition unvalidated. High-temperature dissociation is omitted below 10,000 K.</p>
+    </aside>
+  </section>
+  <section class="panel distribution-panel reaction-distribution" aria-label="Live counted energy distribution">
+    <div class="distribution-copy"><p class="panel-index">03 / COUNTED ENERGY</p><h2>Energy distribution</h2><p>Every current particle is counted. The smooth curve is estimated from those counts.</p><div class="reaction-fit-meta"><span id="sampleCount">100 particles</span><span id="overflowCount">E &gt; 500: 0</span></div><p class="reaction-axis-note">Energy axis fixed · density axis auto-scaled</p></div>
+    <div class="reaction-chart"><canvas id="energyChart" role="img" aria-label="Live measured single-particle translational energy density"></canvas></div>
+  </section>
+  <details class="reaction-details"><summary>Model assumptions &amp; energy accounting</summary><p>H₂ + I₂ ⇌ 2HI is an effective teaching reaction, not a complete mechanism. Real molecular masses and approximate bond lengths are used. Rounded bond energies: H–H 436, I–I 151, H–I 300 kJ mol⁻¹. A forward event releases 13 kJ mol⁻¹; its reverse consumes 13. Pair momentum and kinetic plus bond-potential energy are conserved at each reaction. Rotation is visual; rotational and vibrational energies are omitted.</p><p>At the 10,000 K slider endpoint, the saved molecular mixture is replaced by H and I atoms. This is a prescribed atomic-limit illustration, not a prediction that dissociation begins or completes at this temperature. The thermostat supplies the bond-breaking energy. Lowering the temperature restores the saved molecular composition; atom recombination kinetics are not simulated. No ionization is included.</p><p>Experimental activation parameters are used as educational reference values and extrapolated outside their measured range; equilibrium composition and absolute rates are not quantitatively calibrated. <a href="https://kinetics.nist.gov/kinetics/Detail?id=1959SUL1292%3A0" target="_blank" rel="noopener">NIST kinetic reference</a></p></details>
+  <footer class="control-dock reaction-dock" aria-label="Simulation controls">
+    <div class="particle-control mixture-control"><span class="control-label">INITIAL MIXTURE</span><button id="mixtureButton" class="mixture-button">2,500 MOLECULES <span>EDIT ↗</span></button></div>
+    <button class="vector-toggle" id="velocityToggle" role="switch" aria-checked="false"><span class="toggle-track"><span></span></span><span class="toggle-copy"><strong>VELOCITY SHELLS</strong><small>HALO EXTENSION ∝ SPEED</small></span></button>
+    <div class="transport-controls"><button class="transport-button play" id="playButton">▶ PLAY</button><button class="transport-button" id="pauseButton">Ⅱ PAUSE</button><button class="transport-button reset" id="resetButton">↻ RESET</button></div>
+    <div class="performance-readout"><span>ATOM CONSERVATION</span><strong id="atomAudit">H 100 · I 100</strong></div>
+  </footer>
+</main>
+<dialog id="mixtureDialog" class="mixture-dialog" aria-labelledby="mixtureTitle" aria-describedby="mixtureDescription">
+  <form id="mixtureForm" novalidate>
+    <p class="panel-index">INITIAL CONDITIONS / 2,500 MOLECULES</p>
+    <h2 id="mixtureTitle">Choose your starting mixture.</h2>
+    <p id="mixtureDescription">Set the initial populations of H₂, I₂ and HI. Their sum must be 2,500. Start at 0 K, then add energy.</p>
+    <div class="mixture-inputs">
+      <label><span><i class="molecule-key h2" aria-hidden="true"></i>H₂</span><input id="initialH2" name="H2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial H₂ molecule count"><small id="fractionH2">50.0%</small></label>
+      <label><span><i class="molecule-key i2" aria-hidden="true"></i>I₂</span><input id="initialI2" name="I2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial I₂ molecule count"><small id="fractionI2">50.0%</small></label>
+      <label><span><i class="molecule-key hi" aria-hidden="true"></i>HI</span><input id="initialHI" name="HI" type="number" inputmode="numeric" min="0" max="2500" step="1" value="0" required aria-label="Initial HI molecule count"><small id="fractionHI">0.0%</small></label>
+    </div>
+    <div class="mixture-total"><span>TOTAL MOLECULES</span><output id="mixtureTotal">2,500 / 2,500</output></div>
+    <p id="mixtureFeedback" class="mixture-feedback" role="status" aria-live="polite">Ready. The total is 2,500.</p>
+    <p class="mixture-note">Model molecule counts represent relative amounts, not moles. H and I atoms are conserved during every reaction.</p>
+    <div class="mixture-actions"><button id="cancelMixture" type="button" hidden>KEEP CURRENT MIXTURE</button><button id="confirmMixture" type="submit">ENTER LABORATORY →</button></div>
+  </form>
+</dialog>
+<script>
+if(location.protocol==='file:') { document.querySelector('#failure').hidden=false; document.querySelector('#startCurtain').classList.add('hidden'); }
+setTimeout(()=>{if(!document.documentElement.dataset.reactionReady&&location.protocol!=='file:'){document.querySelector('#failure').hidden=false;document.querySelector('#failureDetail').textContent='The 3D module did not load. Refresh the online page or enable WebGL.';}},8000);
+</script>
+<script type="module" src="./reaction.js?v=20261014f"></script>
+</body>
+</html>

@@ -15,10 +15,35 @@ The project root is now a mode selector:
 | [`index.html`](./index.html) | Laboratory selector | Choose desktop or immersive mode |
 | [`desktop.html`](./desktop.html) | Desktop simulation | Classroom projection, teaching videos, laptops, tablets, and phones |
 | [`vr.html`](./vr.html) | Meta Quest VR laboratory | Immersive WebXR demonstration with controller input |
+| [`reaction.html`](./reaction.html) | Hydrogen–iodine teaching reaction | Reversible collisions, activation barriers, and prescribed atomic-limit illustration |
 
 The desktop and VR editions are independent pages. A failure or unsupported feature in the VR edition does not affect the desktop simulation.
 
 ## Scientific model
+
+### Separate hydrogen–iodine reaction edition
+
+`reaction.html` preserves the box, monochrome UI, and double-click gesture presentation in an independent version. H₂ is a small white diatomic molecule, I₂ is a larger purple diatomic molecule, and HI is an unequal-size white pair. Molecular masses and approximate ground-state bond lengths come from the [NIST WebBook](https://webbook.nist.gov/chemistry/). Collision radii and rendered atom radii are simplified effective values.
+
+The rigid-molecule, translational hard-sphere engine uses spatial neighbor bins and adaptive small steps. An actual approaching H₂–I₂ contact reacts only when relative collision energy `½μ|v₁−v₂|² >= 170 kJ/mol` and the simplified orientation gate passes. Two HI molecules can reverse above 183 kJ/mol. The [NIST kinetic reference](https://kinetics.nist.gov/kinetics/Detail?id=1959SUL1292%3A0) reports these reference activation parameters for 633–738 K; extrapolation here is educational, not a calibrated kinetic prediction. The model does not reproduce the complete radical mechanism or quantum reaction dynamics. Rotational/vibrational energy and angular momentum dynamics are omitted; orientation turns are visual/steric only.
+
+Rounded teaching bond energies H–H=436, I–I=151, and H–I=300 kJ/mol give a consistent forward change of -13 kJ/mol and reverse change of +13. These are model parameters, not a claim of exact state-resolved dissociation energies. Pair momentum, atom inventory, and translational plus bond-potential energy are conserved at each reaction. Static walls reflect elastically. Thermostat work is accumulated when setting the temperature; reactions can then change the measured kinetic temperature. The interface displays both target and measured temperature, current species counts, forward/reverse event counts, last collision decision, thermostat work, and numerical energy error. Absolute equilibrium composition is not quantitatively calibrated.
+
+The slider spans 0–10,000 K, starting at 0 K. Zero is an idealized classical stationary reference, not a realizable gas state: translational velocities and visual rotation stop, and the chart reports all particles at E=0 rather than inventing a finite-width smooth distribution. Heating from zero samples mass-dependent thermal velocity components and accounts for the added energy. Below 10,000 K only H₂/I₂/HI are included, even where dissociation could physically matter. Exactly at the endpoint all molecules are replaced with H and I atoms. **This is a user-prescribed atomic-limit illustration, not a physical dissociation threshold.** Required bond-breaking energy enters the thermostat-work ledger. Lowering the slider restores the saved molecular composition and accounts for its energy change; recombination kinetics and ionization are not simulated.
+
+The kinetic-energy curve recounts current particles; no synthetic independent samples or pre-drawn Maxwell–Boltzmann formula is used. The reaction edition uses a 0–500 kJ/mol fixed energy axis and an explicitly labeled automatic density scale to accommodate its broad temperature range. This curve represents individual translational energies; reaction decisions use pair relative energy. Gesture heating/cooling is 600 K/s for this edition. Velocity-shell extension beyond the effective collision radius, rather than molecular size, is proportional to speed.
+
+Optional checks: `node --test reaction-physics.test.mjs gesture-science.test.mjs` from this directory. No build is needed to view or deploy the pages.
+
+On every page entry, a required initial-mixture dialog sets H₂, I₂ and HI populations with a fixed total of 2500 molecules. The default is 1250 H₂, 1250 I₂ and zero HI. Any nonnegative integer populations are allowed, including unequal H₂/I₂ amounts, as long as the sum is 2500. These model counts represent relative amounts of substance, not 2500 moles. Confirmation initializes actual molecules and starts playback. **Edit** reopens the dialog; applying a new mixture is an explicit new experiment, while **Reset** restores the last chosen initial mixture. Changing temperature never resets its composition.
+
+The displayed species counts are actual integer inventories, audited against `H₂ = H₂₀ − F + R`, `I₂ = I₂₀ − F + R`, and `HI = HI₀ + 2(F − R)`. Initial H/I atom totals may differ between experiments, but remain conserved within each one. Counts are never adjusted to match an expected equilibrium. A fixed volume of 10³ nm³ means composition choices directly set the initial concentrations.
+
+The three-column effective-collision readout counts successful forward, reverse and total bond-exchange events in a rolling window of three active playback seconds (not physical seconds). Pausing or hiding the page freezes this observation clock. Events that only exceed Ea but fail the orientation test are not counted. Before three seconds have elapsed, the display explicitly reports its collection time. These observed rates are not an equilibrium detector: the model's absolute equilibrium composition and detailed-balance kinetics remain unvalidated. Energy and atom-conservation checks alone do not validate thermodynamic equilibrium.
+
+The upper-right **Diffuse view** toggle hides every individual molecule, velocity shell, and collision flash, while retaining the container edges. Only molecular I₂ contributes a uniform purple field; H₂, HI, and atoms contribute no colour. Colour depth follows the actual `N(I₂) / (10³ nm³)` with one fixed monotonic display mapping across all particle-count presets. There are no moving blobs or per-particle marks. It is a qualitative concentration visualization, not calibrated Beer–Lambert absorbance or a spectrum. Temperature never directly sets this colour. In the prescribed all-atom illustration there is no I₂, so the field is transparent. Turning it off restores molecular rendering and collision flashes without changing the simulation.
+
+### Original distribution edition
 
 - Equal-mass, equal-volume particles
 - Independent Gaussian random velocity components

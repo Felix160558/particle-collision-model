@@ -40,3 +40,10 @@ test('hand loss immediately stops a held gesture',()=>{
   assert.equal(gate.update('none',351),'none');
   assert.equal(gate.update('fist',352),'none');
 });
+
+test('reaction edition can count a physical-energy axis without changing the default',()=>{
+  const custom=countAndFit([40,150,200],{energyLimit:500,binWidth:.5});
+  assert.equal(custom.n,3);assert.equal(custom.overflow,0);
+  assert.equal(custom.counts.get(80),1);
+  assert.equal(countAndFit([40,150,200]).overflow,3);
+});

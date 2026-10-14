@@ -1,13 +1,15 @@
 import { createGestureCamera } from './gesture-camera.js';
-import { countAndFit, ENERGY_LIMIT } from './gesture-science.js';
+import { countAndFit, ENERGY_LIMIT } from './gesture-science.js?v=20261014';
 
-export function createGestureView({ getEnergies, getTemperature, setTemperature, zoom }) {
+export function createGestureView({ getEnergies, getTemperature, setTemperature, zoom,
+  energyLimit=ENERGY_LIMIT,binWidth=.125,energyUnit='a.u.',heatRate=36,
+  minimumTemperature=100,autoDensityScale=false,getNote=()=>'',brand='Maxwell–Boltzmann' }) {
   const layer = document.createElement('section');
   layer.className = 'gesture-view';
   layer.hidden = true;
   layer.setAttribute('aria-label','Live gesture laboratory');
   layer.innerHTML = `
-    <div class="gesture-brand">Maxwell–Boltzmann<span>THE CURVE IS COUNTED.</span></div>
+    <div class="gesture-brand">${brand}<span>THE CURVE IS COUNTED.</span></div>
     <div class="gesture-return">Double-click model or Esc to return</div>
     <aside class="gesture-data">
       <div class="gesture-temperature-label">TEMPERATURE</div>
@@ -18,6 +20,7 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
       <canvas data-curve role="img" aria-label="Live fitted energy distribution from counted particles"></canvas>
       <div class="gesture-caption"><span data-count>100 particles counted</span><span data-tail></span></div>
       <div class="gesture-estimate">Real-time counts · Smoothed estimate</div>
+      <div class="gesture-estimate" data-model-note></div>
     </aside>
     <div class="gesture-legend"><span>Open palm <b>Heat</b></span><span>Fist <b>Cool</b></span><span>OK <b>Closer</b></span><span>V <b>Further</b></span></div>
     <video playsinline muted aria-hidden="true"></video>`;
@@ -30,6 +33,7 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
   const countLabel = layer.querySelector('[data-count]');
   const tailLabel = layer.querySelector('[data-tail]');
   const retry = layer.querySelector('[data-retry]');
+  const note=layer.querySelector('[data-model-note]');
   let active = false, lastCount = -Infinity, lastDraw = 0, heatBudget = 0;
   let target, displayed, fixedY = 2;
   const messages = {
@@ -49,7 +53,7 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
     onGesture(gesture,dt) {
       if (!active) return;
       if (gesture==='palm' || gesture==='fist') {
-        heatBudget+=(gesture==='palm'?1:-1)*36*dt;
+        heatBudget+=(gesture==='palm'?1:-1)*heatRate*dt;
         const change=Math.trunc(heatBudget);
         heatBudget-=change;
         if(change) setTemperature(getTemperature()+change);
@@ -66,12 +70,14 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
     const dt = Math.min((now-lastDraw)/1000,.1); lastDraw=now;
     // Recount the current system. Frames are never added as independent samples.
     if (now-lastCount>=100) {
-      const result=countAndFit(getEnergies());
+      const result=countAndFit(getEnergies(),{energyLimit,binWidth});
       target=result.values;
       if (!displayed) displayed=Float64Array.from(target);
       countLabel.textContent=`${result.n.toLocaleString()} particles counted`;
-      tailLabel.textContent=result.overflow?`${result.overflow} above ${ENERGY_LIMIT}`:'';
-      temperatureLabel.textContent=Math.round(getTemperature());
+      tailLabel.textContent=result.overflow?`${result.overflow} above ${energyLimit}`:'';
+      temperatureLabel.textContent=Math.round(getTemperature()).toLocaleString('en-US');
+      note.textContent=getNote()+(autoDensityScale?' · Density scale auto':'');
+      if(autoDensityScale) fixedY=Math.max(.001,Math.max(...target)*1.25);
       lastCount=now;
     }
     if (!displayed) return;
@@ -92,15 +98,20 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
     ctx.lineWidth=1; ctx.strokeStyle='rgba(255,255,255,.18)';
     ctx.beginPath(); ctx.moveTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
     ctx.fillStyle='#777';
-    for(let value=0;value<=ENERGY_LIMIT;value+=5) {
-      const x=left+value/ENERGY_LIMIT*(right-left);
+    for(let value=0;value<=energyLimit;value+=energyLimit/4) {
+      const x=left+value/energyLimit*(right-left);
       ctx.textAlign='center'; ctx.fillText(String(value),x,bottom+17);
       ctx.beginPath(); ctx.moveTo(x,bottom); ctx.lineTo(x,bottom+3); ctx.stroke();
     }
-    ctx.textAlign='right'; ctx.fillStyle='#999'; ctx.fillText('Kinetic energy / a.u.',right,height-2);
+    ctx.textAlign='right'; ctx.fillStyle='#999'; ctx.fillText(`Kinetic energy / ${energyUnit}`,right,height-2);
     ctx.textAlign='left';
+    if(getTemperature()===0) {
+      ctx.fillStyle='#aaa';ctx.fillText('All particles at E = 0',left,top+15);
+      ctx.strokeStyle='#eee';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(left,bottom);ctx.lineTo(left,top+30);ctx.stroke();
+      return;
+    }
     // Only the baseline and a discreet upper tick: axes remain fixed during heating.
-    ctx.fillStyle='#666'; ctx.fillText(fixedY.toFixed(1),0,top+4);
+    ctx.fillStyle='#666'; ctx.fillText(fixedY<.1?fixedY.toFixed(3):fixedY.toFixed(1),0,top+4);
     ctx.save(); ctx.beginPath(); ctx.rect(left,top,right-left,bottom-top); ctx.clip();
     ctx.beginPath(); displayed.forEach((v,i)=>i?ctx.lineTo(px(i),py(v)):ctx.moveTo(px(i),py(v)));
     ctx.lineWidth=2; ctx.lineJoin='round'; ctx.strokeStyle='#f2f2f2'; ctx.stroke();
@@ -115,7 +126,8 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
       lastDraw=performance.now();
       // Choose one scale from this system at the coldest permitted temperature;
       // retain it for this whole visit so peak-height changes remain meaningful.
-      const cold=countAndFit(getEnergies().map(e=>e*100/getTemperature()));
+      const temperature=getTemperature(),coldScale=temperature>0?minimumTemperature/temperature:0;
+      const cold=countAndFit(getEnergies().map(e=>e*coldScale),{energyLimit,binWidth});
       fixedY=Math.max(.5,Math.ceil(Math.max(...cold.values)*1.12*2)/2);
       tracking.start();
     },

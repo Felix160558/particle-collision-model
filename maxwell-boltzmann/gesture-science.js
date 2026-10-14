@@ -9,28 +9,28 @@ function erf(x) {
   return 1 - (((((1.061405429*t - 1.453152027)*t + 1.421413741)*t - .284496736)*t + .254829592)*t)*Math.exp(-x*x);
 }
 
-export function countAndFit(energies) {
+export function countAndFit(energies, {energyLimit=ENERGY_LIMIT, binWidth=BIN_WIDTH}={}) {
   const counts = new Map();
   let sum = 0, sumSquares = 0, n = 0, overflow = 0;
   for (const energy of energies) {
     if (!Number.isFinite(energy) || energy < 0) continue;
-    const bin = Math.floor(energy / BIN_WIDTH);
+    const bin = Math.floor(energy / binWidth);
     counts.set(bin, (counts.get(bin) || 0) + 1);
     sum += energy; sumSquares += energy * energy; n++;
-    if (energy > ENERGY_LIMIT) overflow++;
+    if (energy > energyLimit) overflow++;
   }
   const values = new Float64Array(CURVE_POINTS);
   if (!n) return { values, counts, n, overflow, mean: 0 };
   const mean = sum / n;
   const sigma = Math.sqrt(Math.max(0, sumSquares/n - mean*mean));
   // Data-driven bandwidth; enough support to suppress bin-to-bin sampling noise.
-  const h = Math.max(BIN_WIDTH, 1.15*sigma*Math.pow(n, -.2));
+  const h = Math.max(binWidth, 1.15*sigma*Math.pow(n, -.2));
   const normalizer = n*h*Math.sqrt(2*Math.PI);
   for (const [bin, count] of counts) {
-    const center = (bin + .5)*BIN_WIDTH;
+    const center = (bin + .5)*binWidth;
     const weight = count / Math.max(erf(center/(h*Math.SQRT2)), 1e-12);
     for (let i = 1; i < CURVE_POINTS; i++) {
-      const x = i*ENERGY_LIMIT/(CURVE_POINTS-1);
+      const x = i*energyLimit/(CURVE_POINTS-1);
       const z = (x-center)/h;
       if (Math.abs(z) > 8) continue;
       // Positive boundary-corrected Gaussian kernel, normalized over E >= 0.
