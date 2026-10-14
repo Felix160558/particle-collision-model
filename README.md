@@ -33,14 +33,14 @@ The desktop page uses a repository-local, pinned copy of Three.js `0.161.0`, so 
 
 ## Core learning path
 
-The public collection keeps four older models whose teaching roles do not overlap:
+The public collection keeps four complementary experiments:
 
 1. **Single-Particle Pressure** — momentum transfer and the microscopic origin of pressure.
-2. **Two-Box Microstates** — multiplicity, macrostates, and the emergence of equilibrium.
+2. **[Hydrogen–Iodine Reaction](./maxwell-boltzmann/reaction.html)** — choose 2500 initial H₂/I₂/HI molecules, heat from an idealized 0 K reference, count successful forward/reverse collisions over three active playback seconds, and observe I₂ concentration in a purple-only diffuse view. The reaction engine conserves atoms and reaction-pair energy, but its equilibrium composition and absolute rates are not quantitatively calibrated; see the [model notes](./maxwell-boltzmann/README.md#separate-hydrogeniodine-reaction-edition).
 3. **High-Dimensional Energy Sphere** — total-energy constraints and statistical energy sharing.
 4. **Solid · Liquid · Gas** — particle arrangement and motion during a simplified phase-change demonstration.
 
-The v16 phase model is the sole public phase-change version. The earlier v14 page, the deep-ice lattice study, and the particle condense/diffuse study remain archived in `models/` but are no longer promoted as separate core lessons.
+The Two-Box Microstates page remains archived in `models/`, but its public learning-path slot has been replaced by the hydrogen–iodine laboratory. The v16 phase model is the sole public phase-change version. The earlier v14 page, the deep-ice lattice study, and the particle condense/diffuse study remain archived in `models/` but are no longer promoted as separate core lessons.
 
 ## Local preview
 
@@ -86,6 +86,7 @@ GitHub Pages supplies the secure context required by immersive WebXR. Open the p
 ├── maxwell-boltzmann/
 │   ├── desktop.html                   Full desktop laboratory
 │   ├── vr.html                        Meta Quest / WebXR laboratory
+│   ├── reaction.html                  H₂/I₂/HI reaction and concentration laboratory
 │   ├── index.html                     Desktop / VR selector
 │   ├── vendor/                        Pinned desktop Three.js runtime and license
 │   └── *.js, *.css                    Self-contained simulation assets

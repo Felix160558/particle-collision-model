@@ -9,7 +9,7 @@
   />
   <title>Microscopic Thermodynamics Laboratory</title>
   <link rel="stylesheet" href="./src/styles/theme.css" />
-  <link rel="stylesheet" href="./src/styles/landing.css" />
+  <link rel="stylesheet" href="./src/styles/landing.css?v=20261014" />
 </head>
 <body class="landing-page">
   <div class="ambient-grid" aria-hidden="true"></div>
@@ -106,7 +106,7 @@
           <h2 id="modelsTitle">A concise path through<br />microscopic thermodynamics.</h2>
         </div>
         <p>
-          Four non-repeating models connect collision mechanics, probability, energy geometry, and phase change. Move through them in order, or enter any experiment directly.
+          Four complementary models connect pressure, molecular reactions, energy geometry, and phase change. Move through them in order, or enter any experiment directly.
         </p>
       </header>
 
@@ -122,13 +122,22 @@
           <strong class="model-action">OPEN EXPERIMENT <span>→</span></strong>
         </a>
 
-        <a class="model-card" href="./models/position_microstates_two_boxes.html">
-          <span class="model-index">02 / MULTIPLICITY</span>
-          <div class="model-glyph boxes-glyph" aria-hidden="true"><i></i><b></b><em></em></div>
+        <a class="model-card" href="./maxwell-boltzmann/reaction.html">
+          <span class="model-index">02 / REACTION DYNAMICS</span>
+          <div class="model-glyph reaction-glyph" aria-hidden="true">
+            <svg viewBox="0 0 164 164" fill="none">
+              <path d="M25 46H43M112 46H134M29 119H49M110 119H130" stroke="#999" stroke-width="1"/>
+              <circle cx="25" cy="46" r="3" fill="#eee"/><circle cx="43" cy="46" r="3" fill="#eee"/>
+              <circle cx="112" cy="46" r="6" fill="#a478d4"/><circle cx="134" cy="46" r="6" fill="#a478d4"/>
+              <path d="M57 76H107L101 71M107 86H57L63 91" stroke="#aaa" stroke-width="1"/>
+              <circle cx="29" cy="119" r="3" fill="#eee"/><circle cx="49" cy="119" r="6" fill="#eee"/>
+              <circle cx="110" cy="119" r="3" fill="#eee"/><circle cx="130" cy="119" r="6" fill="#eee"/>
+            </svg>
+          </div>
           <div>
-            <p class="model-chapter">FROM COUNTING TO EQUILIBRIUM</p>
-            <h3>Two-Box Microstates</h3>
-            <p>Count microscopic arrangements and discover why balanced macrostates are overwhelmingly more probable.</p>
+            <p class="model-chapter">FROM COLLISION TO CHEMICAL CHANGE</p>
+            <h3>Hydrogen–Iodine Reaction</h3>
+            <p>Choose the H₂, I₂ and HI mixture, add energy, and count successful bond exchanges. See iodine concentration as a purple gas.</p>
           </div>
           <strong class="model-action">OPEN EXPERIMENT <span>→</span></strong>
         </a>
