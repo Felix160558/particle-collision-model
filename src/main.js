@@ -31,7 +31,6 @@ const requestedModuleId = document.body.dataset.moduleId || new URLSearchParams(
 const modelPagePrefix = document.body.dataset.moduleId ? "./" : "./models/";
 const publicModuleIds = [
   "single_ball_pressure",
-  "position_microstates_two_boxes",
   "high_dimensional_energy_sphere"
 ];
 
@@ -62,6 +61,11 @@ for (const moduleId of publicModuleIds) {
 }
 
 const phaseLink = document.createElement("a");
+const reactionLink = document.createElement("a");
+reactionLink.href = document.body.dataset.moduleId ? "../maxwell-boltzmann/reaction.html" : "./maxwell-boltzmann/reaction.html";
+reactionLink.textContent = "Hydrogen–Iodine Reaction";
+reactionLink.title = "Initial composition, activation energy, actual bond exchanges and iodine concentration";
+moduleNav.insertBefore(reactionLink, moduleNav.children[1] || null);
 phaseLink.href = modelPagePrefix + "v16_second_curtain_more_sensitive.html";
 phaseLink.textContent = "Solid · Liquid · Gas";
 phaseLink.title = "Particle arrangement and motion across three phases";
