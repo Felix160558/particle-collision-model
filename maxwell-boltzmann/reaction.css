@@ -31,6 +31,11 @@
 @media(max-width:560px) {.mixture-dialog {padding:24px 20px;}.mixture-inputs {gap:9px;}.mixture-inputs input {font-size:21px;padding:12px 6px;}.mixture-control {justify-content:center;}.mixture-total output {font-size:14px;}}
 .statistics-panel {overflow-y:auto;scrollbar-width:thin;}
 .statistics-panel > * {flex-shrink:0;}
+.reaction-live-count {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--line);}
+.reaction-live-count > span {font:8px ui-monospace,monospace;letter-spacing:.11em;color:#999;}
+.reaction-live-count > div {display:flex;align-items:baseline;gap:8px;}
+.reaction-live-count strong {font:300 24px ui-monospace,monospace;color:#eee;font-variant-numeric:tabular-nums;}
+.reaction-live-count small {color:#888;font-size:9px;}
 html.gesture-mode .reaction-details {display:none;}
 .reaction-species {display:grid;grid-template-columns:repeat(3,1fr);padding:18px 20px;border-bottom:1px solid var(--line);gap:16px;}
 .reaction-species > div {display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-size:12px;}

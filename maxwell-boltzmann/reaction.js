@@ -138,7 +138,10 @@ function setTemperature(value) {
 }
 function updateUI() {
   const counts=system.counts;
-  $('#initialCountReadout').textContent=`${system.initialCount.toLocaleString()} MOLECULES`;
+  $('#initialCountReadout').textContent=`INITIAL · ${system.initialCount.toLocaleString()} MOLECULES`;
+  const currentCount=system.particles.length.toLocaleString(),currentUnit=system.atomic?'atoms':'molecules';
+  if($('#currentParticleCount').textContent!==currentCount) $('#currentParticleCount').textContent=currentCount;
+  if($('#currentParticleUnit').textContent!==currentUnit) $('#currentParticleUnit').textContent=currentUnit;
   for(const species of Object.keys(counts)) $(`#count${species}`).textContent=counts[species].toLocaleString();
   $('#atomicCounts').hidden=!system.atomic;
   $('#speciesTitle').textContent=system.atomic?'Atomic limit illustration':'Current molecular inventory';

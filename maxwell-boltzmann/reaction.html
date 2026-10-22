@@ -6,7 +6,7 @@
   <meta name="description" content="A counted particle model of activation energy, reversible hydrogen–iodine reaction, and energy conservation.">
   <link rel="stylesheet" href="./styles.css?v=20260812">
   <link rel="stylesheet" href="./gesture.css?v=20260909c">
-  <link rel="stylesheet" href="./reaction.css?v=20261022">
+  <link rel="stylesheet" href="./reaction.css?v=20261022b">
 </head>
 <body>
 <div class="ambient-grid" aria-hidden="true"></div>
@@ -30,6 +30,7 @@
     </article>
     <aside class="panel statistics-panel" aria-label="Reaction statistics">
       <div class="panel-heading compact"><div><p class="panel-index">02 / LIVE CHEMISTRY</p><h2 id="speciesTitle">Current molecular inventory</h2></div></div>
+      <div class="reaction-live-count" role="status" aria-label="Current particle count"><span>CURRENT PARTICLES</span><div><strong id="currentParticleCount">2,500</strong><small id="currentParticleUnit">molecules</small></div></div>
       <div class="reaction-species" aria-label="Live species counts">
         <div><span class="molecule-key h2"></span><span>H₂</span><strong id="countH2">50</strong></div>
         <div><span class="molecule-key i2"></span><span>I₂</span><strong id="countI2">50</strong></div>
@@ -57,7 +58,7 @@
   </section>
   <details class="reaction-details"><summary>Model assumptions &amp; energy accounting</summary><p>H₂ + I₂ ⇌ 2HI is an effective teaching reaction, not a complete mechanism. Real molecular masses and approximate bond lengths are used. Rounded bond energies: H–H 436, I–I 151, H–I 300 kJ mol⁻¹. A forward event releases 13 kJ mol⁻¹; its reverse consumes 13. Pair momentum and kinetic plus bond-potential energy are conserved at each reaction. Rotation is visual; rotational and vibrational energies are omitted.</p><p>At the 10,000 K slider endpoint, the saved molecular mixture is replaced by H and I atoms. This is a prescribed atomic-limit illustration, not a prediction that dissociation begins or completes at this temperature. The thermostat supplies the bond-breaking energy. Lowering the temperature restores the saved molecular composition; atom recombination kinetics are not simulated. No ionization is included.</p><p>Experimental activation parameters are used as educational reference values and extrapolated outside their measured range; equilibrium composition and absolute rates are not quantitatively calibrated. <a href="https://kinetics.nist.gov/kinetics/Detail?id=1959SUL1292%3A0" target="_blank" rel="noopener">NIST kinetic reference</a></p></details>
   <footer class="control-dock reaction-dock" aria-label="Simulation controls">
-    <div class="particle-control mixture-control"><span class="control-label" id="initialCountReadout">2,500 MOLECULES</span><button id="mixtureButton" class="mixture-button">SET PARTICLE COUNTS <span>↗</span></button></div>
+    <div class="particle-control mixture-control"><span class="control-label" id="initialCountReadout">INITIAL · 2,500 MOLECULES</span><button id="mixtureButton" class="mixture-button">SET PARTICLE COUNTS <span>↗</span></button></div>
     <button class="vector-toggle" id="velocityToggle" role="switch" aria-checked="false"><span class="toggle-track"><span></span></span><span class="toggle-copy"><strong>VELOCITY SHELLS</strong><small>HALO EXTENSION ∝ SPEED</small></span></button>
     <div class="transport-controls"><button class="transport-button play" id="playButton">▶ PLAY</button><button class="transport-button" id="pauseButton">Ⅱ PAUSE</button><button class="transport-button reset" id="resetButton">↻ RESET</button></div>
     <div class="performance-readout"><span>ATOM CONSERVATION</span><strong id="atomAudit">H 100 · I 100</strong></div>
@@ -83,6 +84,6 @@
 if(location.protocol==='file:') { document.querySelector('#failure').hidden=false; document.querySelector('#startCurtain').classList.add('hidden'); }
 setTimeout(()=>{if(!document.documentElement.dataset.reactionReady&&location.protocol!=='file:'){document.querySelector('#failure').hidden=false;document.querySelector('#failureDetail').textContent='The 3D module did not load. Refresh the online page or enable WebGL.';}},8000);
 </script>
-<script type="module" src="./reaction.js?v=20261022"></script>
+<script type="module" src="./reaction.js?v=20261022b"></script>
 </body>
 </html>
