@@ -9,6 +9,7 @@ const $=selector=>document.querySelector(selector);
 const viewport=$('#threeViewport'),curtain=$('#startCurtain'),slider=$('#temperatureSlider');
 const system=new ReactionSystem({count:2500,temperature:0});
 const mixtureDialog=$('#mixtureDialog'),mixtureKeys=['H2','I2','HI'];
+const maximumMolecules=2500;
 let configured=false,mixtureWasRunning=false;
 let renderer,scene,camera,edges,atomMesh,bondMesh,shellMesh,pulse,diffuseView;
 let diffuseMode=false;
@@ -137,6 +138,7 @@ function setTemperature(value) {
 }
 function updateUI() {
   const counts=system.counts;
+  $('#initialCountReadout').textContent=`${system.initialCount.toLocaleString()} MOLECULES`;
   for(const species of Object.keys(counts)) $(`#count${species}`).textContent=counts[species].toLocaleString();
   $('#atomicCounts').hidden=!system.atomic;
   $('#speciesTitle').textContent=system.atomic?'Atomic limit illustration':'Current molecular inventory';
@@ -247,28 +249,30 @@ $('#diffuseToggle').addEventListener('click',()=>{
   $('#diffuseToggle').classList.toggle('active',diffuseMode);
 });
 function reset(inventory=system.initialInventory) {
-  system.reset(2500,system.targetTemperature,{inventory});createMeshes();
+  const total=mixtureKeys.reduce((sum,key)=>sum+inventory[key],0);
+  system.reset(total,system.targetTemperature,{inventory});createMeshes();
   started=false;setRunning(false);curtain.classList.remove('hidden');
   lastUI=-Infinity;lastChart=-Infinity;updateUI();
 }
 $('#resetButton').addEventListener('click',()=>reset());
 function readMixture() {
   const inventory=Object.fromEntries(mixtureKeys.map(key=>[key,$(`#initial${key}`).valueAsNumber]));
-  const valid=mixtureKeys.every(key=>Number.isInteger(inventory[key])&&inventory[key]>=0&&inventory[key]<=2500);
+  const valid=mixtureKeys.every(key=>Number.isInteger(inventory[key])&&inventory[key]>=0&&inventory[key]<=maximumMolecules);
   const total=mixtureKeys.reduce((sum,key)=>sum+(Number.isFinite(inventory[key])?inventory[key]:0),0);
-  $('#mixtureTotal').textContent=`${total.toLocaleString()} / 2,500`;
-  for(const key of mixtureKeys) $(`#fraction${key}`).textContent=valid?`${(inventory[key]/2500*100).toFixed(1)}%`:'—';
-  $('#confirmMixture').disabled=!valid||total!==2500;
-  $('#mixtureFeedback').textContent=!valid?'Use whole numbers from 0 to 2,500.':total===2500?'Ready. The total is 2,500.':
-    total<2500?`Add ${(2500-total).toLocaleString()} molecules to reach 2,500.`:`Remove ${(total-2500).toLocaleString()} molecules to reach 2,500.`;
-  return {inventory,valid:valid&&total===2500};
+  $('#mixtureTotal').textContent=Number.isSafeInteger(total)?total.toLocaleString():'—';
+  for(const key of mixtureKeys) $(`#fraction${key}`).textContent=valid&&total>0?`${(inventory[key]/total*100).toFixed(1)}%`:'—';
+  const ready=valid&&total>0&&total<=maximumMolecules;
+  $('#confirmMixture').disabled=!ready;
+  $('#mixtureFeedback').textContent=!valid?'Use whole numbers from 0 to 2,500.':total===0?'Add at least one molecule.':
+    total>maximumMolecules?'Keep the total at or below 2,500 for browser performance.':`Ready. ${total.toLocaleString()} molecules in total.`;
+  return {inventory,valid:ready};
 }
 function openMixture() {
   if(mixtureDialog.open) return;
   mixtureWasRunning=running;setRunning(false);
   for(const key of mixtureKeys) $(`#initial${key}`).value=system.initialInventory[key];
   $('#cancelMixture').hidden=!configured;
-  $('#mixtureDescription').textContent='Set the initial populations of H₂, I₂ and HI. Their sum must be 2,500. '+
+  $('#mixtureDescription').textContent='Enter each species count. The total is calculated from your inputs. '+
     (configured?`Keep the current temperature: ${Math.round(system.targetTemperature).toLocaleString()} K.`:'Start at 0 K, then add energy.');
   $('#confirmMixture').textContent=configured?'APPLY & RESTART →':'ENTER LABORATORY →';
   readMixture();mixtureDialog.showModal();

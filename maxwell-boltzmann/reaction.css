@@ -64,7 +64,7 @@ html.gesture-mode .reaction-details {display:none;}
 .reaction-fit-meta {display:flex;gap:18px;color:#bbb;font:9px ui-monospace,monospace;}.reaction-axis-note {font-size:9px !important;color:#888 !important;}
 .reaction-details {margin:18px 0 8px;font-size:11px;color:#999;line-height:1.8;}.reaction-details summary {cursor:pointer;color:#ccc;}.reaction-details a {color:#ddd;}.reaction-details p {max-width:1000px;}
 .reaction-dock {grid-template-columns:auto auto 1fr auto;max-width:1120px;}.reaction-dock .transport-controls {justify-content:center;}
-.reaction-dock .count-button {cursor:pointer;}.reaction-dock .toggle-copy strong {white-space:nowrap;}
+.reaction-dock .toggle-copy strong {white-space:nowrap;}
 #failure a {color:#fff;font-size:11px;padding:10px;}
 @media(min-width:901px) {.reaction-temperature .temperature-heading {gap:10px;}.reaction-temperature output {font-size:14px;}.reaction-species strong {font-size:29px;}.reaction-distribution .distribution-copy {padding:28px;}.reaction-distribution h2 {font-size:20px;}}
 @media(max-width:900px) {.reaction-distribution {grid-template-columns:1fr;}.reaction-chart canvas {height:200px;}.reaction-dock {grid-template-columns:auto auto;}.reaction-dock .transport-controls {grid-column:1/-1;}.reaction-dock .performance-readout {display:none;}}
