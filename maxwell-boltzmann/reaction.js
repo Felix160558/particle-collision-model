@@ -213,7 +213,8 @@ function drawChart(now) {
 }
 function animate(now) {
   const elapsed=Math.min((now-lastFrame)/1000,.25),dt=Math.min(elapsed,.033);lastFrame=now;
-  if(running&&!document.hidden) system.step(dt,elapsed);
+  // Editing initial conditions must freeze both motion and reaction counts.
+  if(running&&!mixtureDialog.open&&!document.hidden) system.step(dt,elapsed);
   syncMeshes();renderer.render(scene,camera);
   diffuseView?.draw(now);
   if(now-lastUI>125) {updateUI();lastUI=now;}
@@ -290,13 +291,14 @@ function updateMixtureLive(counts=system.counts) {
 function openMixture() {
   if(mixtureDialog.open) return;
   mixtureWasRunning=running;
+  setRunning(false);
   for(const key of mixtureKeys) $(`#initial${key}`).value=system.initialInventory[key];
   $('#cancelMixture').hidden=!configured;
   $('#mixtureLive').hidden=!configured;
   $('#mixtureInputsLabel').hidden=!configured;
   mixtureDialog.classList.toggle('with-live-counts',configured);
   $('#mixtureDescription').textContent='Enter each species count. The total is calculated from your inputs. '+
-    (configured?`Keep the current temperature: ${Math.round(system.targetTemperature).toLocaleString()} K.`:'Start at 0 K, then add energy.');
+    (configured?`Simulation paused. Keep the current temperature: ${Math.round(system.targetTemperature).toLocaleString()} K.`:'Start at 0 K, then add energy.');
   $('#confirmMixture').textContent=configured?'APPLY & RESTART →':'ENTER LABORATORY →';
   readMixture();mixtureDialog.showModal();updateMixtureLive();
 }

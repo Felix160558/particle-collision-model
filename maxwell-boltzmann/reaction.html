@@ -74,7 +74,7 @@
       <dl><div><dt>H₂</dt><dd id="mixtureLiveH2">0</dd></div><div><dt>I₂</dt><dd id="mixtureLiveI2">0</dd></div><div><dt>HI</dt><dd id="mixtureLiveHI">0</dd></div></dl>
       <p class="mixture-live-atoms" id="mixtureLiveAtoms" hidden>H <b id="mixtureLiveH">0</b><span>·</span>I <b id="mixtureLiveI">0</b></p>
       <footer><span>TOTAL <b id="mixtureLiveTotal">0</b> <small id="mixtureLiveUnit">molecules</small></span><span id="mixtureLiveTemperature">0 K</span></footer>
-      <p>Actual counts update live. Inputs below apply only on confirmation.</p>
+      <p>Simulation paused while editing. Confirm to apply the counts below and resume.</p>
     </section>
     <p id="mixtureInputsLabel" class="mixture-inputs-label" hidden>NEW STARTING COUNTS</p>
     <div class="mixture-inputs">
@@ -92,6 +92,6 @@
 if(location.protocol==='file:') { document.querySelector('#failure').hidden=false; document.querySelector('#startCurtain').classList.add('hidden'); }
 setTimeout(()=>{if(!document.documentElement.dataset.reactionReady&&location.protocol!=='file:'){document.querySelector('#failure').hidden=false;document.querySelector('#failureDetail').textContent='The 3D module did not load. Refresh the online page or enable WebGL.';}},8000);
 </script>
-<script type="module" src="./reaction.js?v=20261022c"></script>
+<script type="module" src="./reaction.js?v=20261023a"></script>
 </body>
 </html>
