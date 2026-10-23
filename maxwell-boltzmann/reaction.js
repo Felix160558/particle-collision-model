@@ -138,6 +138,7 @@ function setTemperature(value) {
 }
 function updateUI() {
   const counts=system.counts;
+  updateMixtureLive(counts);
   $('#initialCountReadout').textContent=`INITIAL · ${system.initialCount.toLocaleString()} MOLECULES`;
   const currentCount=system.particles.length.toLocaleString(),currentUnit=system.atomic?'atoms':'molecules';
   if($('#currentParticleCount').textContent!==currentCount) $('#currentParticleCount').textContent=currentCount;
@@ -270,15 +271,34 @@ function readMixture() {
     total>maximumMolecules?'Keep the total at or below 2,500 for browser performance.':`Ready. ${total.toLocaleString()} molecules in total.`;
   return {inventory,valid:ready};
 }
+function updateMixtureLive(counts=system.counts) {
+  if(!configured||!mixtureDialog.open) return;
+  const values={
+    mixtureLiveH2:counts.H2,mixtureLiveI2:counts.I2,mixtureLiveHI:counts.HI,
+    mixtureLiveH:counts.H,mixtureLiveI:counts.I,
+    mixtureLiveTotal:system.particles.length,
+    mixtureLiveUnit:system.atomic?'atoms':'molecules',
+    mixtureLiveState:running?'LIVE':'PAUSED',
+    mixtureLiveTemperature:`${Math.round(system.kineticTemperature).toLocaleString()} K`,
+  };
+  for(const [id,value] of Object.entries(values)) {
+    const element=$(`#${id}`),text=typeof value==='number'?value.toLocaleString():value;
+    if(element.textContent!==text) element.textContent=text;
+  }
+  $('#mixtureLiveAtoms').hidden=!system.atomic;
+}
 function openMixture() {
   if(mixtureDialog.open) return;
-  mixtureWasRunning=running;setRunning(false);
+  mixtureWasRunning=running;
   for(const key of mixtureKeys) $(`#initial${key}`).value=system.initialInventory[key];
   $('#cancelMixture').hidden=!configured;
+  $('#mixtureLive').hidden=!configured;
+  $('#mixtureInputsLabel').hidden=!configured;
+  mixtureDialog.classList.toggle('with-live-counts',configured);
   $('#mixtureDescription').textContent='Enter each species count. The total is calculated from your inputs. '+
     (configured?`Keep the current temperature: ${Math.round(system.targetTemperature).toLocaleString()} K.`:'Start at 0 K, then add energy.');
   $('#confirmMixture').textContent=configured?'APPLY & RESTART →':'ENTER LABORATORY →';
-  readMixture();mixtureDialog.showModal();
+  readMixture();mixtureDialog.showModal();updateMixtureLive();
 }
 function closeMixture() {mixtureDialog.close();setRunning(mixtureWasRunning);}
 $('#mixtureButton').addEventListener('click',openMixture);

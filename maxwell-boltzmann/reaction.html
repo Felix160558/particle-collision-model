@@ -6,7 +6,7 @@
   <meta name="description" content="A counted particle model of activation energy, reversible hydrogen–iodine reaction, and energy conservation.">
   <link rel="stylesheet" href="./styles.css?v=20260812">
   <link rel="stylesheet" href="./gesture.css?v=20260909c">
-  <link rel="stylesheet" href="./reaction.css?v=20261022b">
+  <link rel="stylesheet" href="./reaction.css?v=20261022c">
 </head>
 <body>
 <div class="ambient-grid" aria-hidden="true"></div>
@@ -69,6 +69,14 @@
     <p class="panel-index">INITIAL CONDITIONS / PARTICLE COUNTS</p>
     <h2 id="mixtureTitle">Set particle counts.</h2>
     <p id="mixtureDescription">Enter each species count. The total is calculated from your inputs. Start at 0 K, then add energy.</p>
+    <section id="mixtureLive" class="mixture-live" aria-label="Actual current species counts" hidden>
+      <header><span>CURRENT SYSTEM</span><small id="mixtureLiveState">LIVE</small></header>
+      <dl><div><dt>H₂</dt><dd id="mixtureLiveH2">0</dd></div><div><dt>I₂</dt><dd id="mixtureLiveI2">0</dd></div><div><dt>HI</dt><dd id="mixtureLiveHI">0</dd></div></dl>
+      <p class="mixture-live-atoms" id="mixtureLiveAtoms" hidden>H <b id="mixtureLiveH">0</b><span>·</span>I <b id="mixtureLiveI">0</b></p>
+      <footer><span>TOTAL <b id="mixtureLiveTotal">0</b> <small id="mixtureLiveUnit">molecules</small></span><span id="mixtureLiveTemperature">0 K</span></footer>
+      <p>Actual counts update live. Inputs below apply only on confirmation.</p>
+    </section>
+    <p id="mixtureInputsLabel" class="mixture-inputs-label" hidden>NEW STARTING COUNTS</p>
     <div class="mixture-inputs">
       <label><span><i class="molecule-key h2" aria-hidden="true"></i>H₂</span><input id="initialH2" name="H2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial H₂ molecule count"><small id="fractionH2">50.0%</small></label>
       <label><span><i class="molecule-key i2" aria-hidden="true"></i>I₂</span><input id="initialI2" name="I2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial I₂ molecule count"><small id="fractionI2">50.0%</small></label>
@@ -84,6 +92,6 @@
 if(location.protocol==='file:') { document.querySelector('#failure').hidden=false; document.querySelector('#startCurtain').classList.add('hidden'); }
 setTimeout(()=>{if(!document.documentElement.dataset.reactionReady&&location.protocol!=='file:'){document.querySelector('#failure').hidden=false;document.querySelector('#failureDetail').textContent='The 3D module did not load. Refresh the online page or enable WebGL.';}},8000);
 </script>
-<script type="module" src="./reaction.js?v=20261022b"></script>
+<script type="module" src="./reaction.js?v=20261022c"></script>
 </body>
 </html>
