@@ -9,7 +9,7 @@ const $=selector=>document.querySelector(selector);
 const viewport=$('#threeViewport'),curtain=$('#startCurtain'),slider=$('#temperatureSlider');
 const system=new ReactionSystem({count:2500,temperature:0});
 const mixtureDialog=$('#mixtureDialog'),mixtureKeys=['H2','I2','HI'];
-const maximumMolecules=2500;
+const maximumMolecules=5000;
 let configured=false,mixtureWasRunning=false;
 let renderer,scene,camera,edges,atomMesh,bondMesh,shellMesh,pulse,diffuseView;
 let diffuseMode=false;
@@ -268,8 +268,8 @@ function readMixture() {
   for(const key of mixtureKeys) $(`#fraction${key}`).textContent=valid&&total>0?`${(inventory[key]/total*100).toFixed(1)}%`:'—';
   const ready=valid&&total>0&&total<=maximumMolecules;
   $('#confirmMixture').disabled=!ready;
-  $('#mixtureFeedback').textContent=!valid?'Use whole numbers from 0 to 2,500.':total===0?'Add at least one molecule.':
-    total>maximumMolecules?'Keep the total at or below 2,500 for browser performance.':`Ready. ${total.toLocaleString()} molecules in total.`;
+  $('#mixtureFeedback').textContent=!valid?'Use whole numbers from 0 to 5,000.':total===0?'Add at least one molecule.':
+    total>maximumMolecules?'Keep the total at or below 5,000 for browser performance.':`Ready. ${total.toLocaleString()} molecules in total.`;
   return {inventory,valid:ready};
 }
 function updateMixtureLive(counts=system.counts) {

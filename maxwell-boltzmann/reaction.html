@@ -78,13 +78,13 @@
     </section>
     <p id="mixtureInputsLabel" class="mixture-inputs-label" hidden>NEW STARTING COUNTS</p>
     <div class="mixture-inputs">
-      <label><span><i class="molecule-key h2" aria-hidden="true"></i>H₂</span><input id="initialH2" name="H2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial H₂ molecule count"><small id="fractionH2">50.0%</small></label>
-      <label><span><i class="molecule-key i2" aria-hidden="true"></i>I₂</span><input id="initialI2" name="I2" type="number" inputmode="numeric" min="0" max="2500" step="1" value="1250" required aria-label="Initial I₂ molecule count"><small id="fractionI2">50.0%</small></label>
-      <label><span><i class="molecule-key hi" aria-hidden="true"></i>HI</span><input id="initialHI" name="HI" type="number" inputmode="numeric" min="0" max="2500" step="1" value="0" required aria-label="Initial HI molecule count"><small id="fractionHI">0.0%</small></label>
+      <label><span><i class="molecule-key h2" aria-hidden="true"></i>H₂</span><input id="initialH2" name="H2" type="number" inputmode="numeric" min="0" max="5000" step="1" value="1250" required aria-label="Initial H₂ molecule count"><small id="fractionH2">50.0%</small></label>
+      <label><span><i class="molecule-key i2" aria-hidden="true"></i>I₂</span><input id="initialI2" name="I2" type="number" inputmode="numeric" min="0" max="5000" step="1" value="1250" required aria-label="Initial I₂ molecule count"><small id="fractionI2">50.0%</small></label>
+      <label><span><i class="molecule-key hi" aria-hidden="true"></i>HI</span><input id="initialHI" name="HI" type="number" inputmode="numeric" min="0" max="5000" step="1" value="0" required aria-label="Initial HI molecule count"><small id="fractionHI">0.0%</small></label>
     </div>
     <div class="mixture-total"><span>TOTAL MOLECULES</span><output id="mixtureTotal">2,500</output></div>
     <p id="mixtureFeedback" class="mixture-feedback" role="status" aria-live="polite">Ready. 2,500 molecules in total.</p>
-    <p class="mixture-note">Up to 2,500 molecules for browser performance. These are model counts, not moles. H and I atoms are conserved during every reaction.</p>
+    <p class="mixture-note">Up to 5,000 molecules for browser performance. These are model counts, not moles. H and I atoms are conserved during every reaction.</p>
     <div class="mixture-actions"><button id="cancelMixture" type="button" hidden>KEEP CURRENT MIXTURE</button><button id="confirmMixture" type="submit">ENTER LABORATORY →</button></div>
   </form>
 </dialog>
@@ -92,6 +92,6 @@
 if(location.protocol==='file:') { document.querySelector('#failure').hidden=false; document.querySelector('#startCurtain').classList.add('hidden'); }
 setTimeout(()=>{if(!document.documentElement.dataset.reactionReady&&location.protocol!=='file:'){document.querySelector('#failure').hidden=false;document.querySelector('#failureDetail').textContent='The 3D module did not load. Refresh the online page or enable WebGL.';}},8000);
 </script>
-<script type="module" src="./reaction.js?v=20261023a"></script>
+<script type="module" src="./reaction.js?v=20261030a"></script>
 </body>
 </html>

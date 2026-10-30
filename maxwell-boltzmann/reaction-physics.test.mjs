@@ -59,18 +59,18 @@ test('many collisions and wall reflections remain bounded and conserve total ene
   for(const species of ['H2','I2','HI']) assert.ok(Number.isInteger(system.counts[species]));
 });
 
-test('2500 molecules keep stoichiometric counts, bounds, atoms and energy',()=>{
-  const system=new ReactionSystem({count:2500,temperature:9000,random:seed(41)});
-  assert.deepEqual(system.counts,{H2:1250,I2:1250,HI:0,H:0,I:0});
+for(const count of [2500,5000]) test(`${count} molecules keep stoichiometric counts, bounds, atoms and energy`,()=>{
+  const system=new ReactionSystem({count,temperature:9000,random:seed(41)});
+  assert.deepEqual(system.counts,{H2:count/2,I2:count/2,HI:0,H:0,I:0});
   const atoms=atomCounts(system.particles);
   for(let i=0;i<90;i++) system.step(1/60);
-  assert.equal(system.particles.length,2500);
+  assert.equal(system.particles.length,count);
   assert.deepEqual(atomCounts(system.particles),atoms);
   assert.equal(system.compositionAudit().valid,true);
   assert.ok(Math.abs(system.balanceError)/Math.abs(system.initialEnergy)<1e-10);
   assert.ok(system.particles.every(p=>p.p.every(v=>Number.isFinite(v)&&Math.abs(v)<5)));
   assert.ok(system.forward>0);
-  system.setTemperature(10000);assert.equal(system.particles.length,5000);
+  system.setTemperature(10000);assert.equal(system.particles.length,count*2);
   assert.deepEqual(atomCounts(system.particles),atoms);
   system.setTemperature(5000);assert.equal(system.compositionAudit().valid,true);
 });
