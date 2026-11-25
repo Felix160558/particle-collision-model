@@ -1,5 +1,5 @@
 import * as THREE from "./vendor/three.module.min.js";
-import { createGestureView } from "./gesture-view.js";
+import { createGestureView } from "./gesture-view.js?v=20261125a";
 import { createBoxEdges } from "./box-edges.js";
 
 const EMBED_MODE = new URLSearchParams(window.location.search).get("embed") === "1";
@@ -14,10 +14,9 @@ const MAX_VISIBLE_VECTORS = 160;
 
 const viewport = document.querySelector("#threeViewport");
 const startCurtain = document.querySelector("#startCurtain");
-const startStatus = document.querySelector("#startStatus");
-const startButton = document.querySelector("#startButton");
 const playButton = document.querySelector("#playButton");
-const pauseButton = document.querySelector("#pauseButton");
+const playbackLabel = document.querySelector("#playbackLabel");
+const playbackIcon = playButton.querySelector("span[aria-hidden]");
 const resetButton = document.querySelector("#resetButton");
 const generateButton = document.querySelector("#generateButton");
 const curveButton = document.querySelector("#curveButton");
@@ -25,8 +24,6 @@ const temperatureSlider = document.querySelector("#temperatureSlider");
 const temperatureReadout = document.querySelector("#temperatureReadout");
 const velocityToggle = document.querySelector("#velocityToggle");
 const compareToggle = document.querySelector("#compareToggle");
-const compareModeHint = document.querySelector("#compareModeHint");
-const velocityModeHint = document.querySelector("#velocityModeHint");
 const averageSpeedReadout = document.querySelector("#averageSpeed");
 const maximumSpeedReadout = document.querySelector("#maximumSpeed");
 const averageEnergyReadout = document.querySelector("#averageEnergy");
@@ -57,7 +54,6 @@ const countButtons = [...document.querySelectorAll(".count-button")];
 const particleReadout = document.querySelector("#particleReadout");
 const liveState = document.querySelector("#liveState");
 const stateLabel = document.querySelector("#stateLabel");
-const performanceLabel = document.querySelector("#performanceLabel");
 const webglMessage = document.querySelector("#webglMessage");
 const webglMessageTitle = document.querySelector("#webglMessageTitle");
 const webglMessageDetail = document.querySelector("#webglMessageDetail");
@@ -143,7 +139,7 @@ function showWebglFailure(title, detail, error) {
   webglMessage.hidden = false;
   startCurtain.classList.add("hidden");
   stateLabel.textContent = "UNAVAILABLE";
-  performanceLabel.textContent = "3D OFFLINE";
+  playButton.disabled = true;
   if (error) console.error(error);
 }
 
@@ -218,8 +214,8 @@ function initThree() {
   }
   resizeRenderer();
   stateLabel.textContent = "READY";
-  startStatus.textContent = "MICROSCOPIC SYSTEM READY";
-  startButton.disabled = false;
+  startCurtain.classList.add("hidden");
+  playButton.disabled = false;
   requestAnimationFrame(animate);
   return true;
 }
@@ -311,10 +307,8 @@ function createParticles(count) {
   velocitySampleIndices = createVelocitySampleIndices(count);
   createVelocityVectors();
   createVelocityShells(count);
-  velocityModeHint.textContent = "RADIUS ∝ |v| · ALL PARTICLES";
   updateStatisticsReadout();
   particleReadout.textContent = count.toLocaleString();
-  performanceLabel.textContent = hasStarted ? `${count.toLocaleString()} PARTICLES` : "STANDBY";
 }
 
 function setEnsembleOpacity(opacity) {
@@ -553,23 +547,26 @@ function attachPointerControls() {
   }, { passive: false });
 }
 
+function playbackActive() {
+  return isRunning || (isCollecting && !collectionPaused);
+}
+
+function updatePlaybackButton() {
+  const active = playbackActive();
+  playbackLabel.textContent = active ? "Pause" : "Play";
+  playbackIcon.className = active ? "pause-icon" : "play-icon";
+}
+
 function setRunning(nextRunning) {
   isRunning = nextRunning;
   liveState.classList.toggle("running", isRunning);
   liveState.classList.toggle("paused", hasStarted && !isRunning);
   stateLabel.textContent = isRunning ? "LIVE" : hasStarted ? "PAUSED" : "READY";
-  playButton.classList.toggle("active", isRunning);
-  pauseButton.classList.toggle("active", hasStarted && !isRunning);
-  playButton.setAttribute("aria-pressed", String(isRunning));
-  pauseButton.setAttribute("aria-pressed", String(hasStarted && !isRunning));
-  performanceLabel.textContent = hasStarted
-    ? isRunning ? `${particleCount.toLocaleString()} PARTICLES · RUNNING` : "SIMULATION PAUSED"
-    : "STANDBY";
+  updatePlaybackButton();
 }
 
 function startSimulation() {
   hasStarted = true;
-  startCurtain.classList.add("hidden");
   setRunning(true);
 }
 
@@ -577,7 +574,6 @@ function resetSimulation() {
   hasStarted = false;
   setRunning(false);
   createParticles(particleCount);
-  startCurtain.classList.remove("hidden");
   yaw = -0.66;
   pitch = 0.43;
   cameraDistance = 14.2;
@@ -657,6 +653,7 @@ function cancelCollection() {
   ensembleIndicator.hidden = true;
   setEnsembleOpacity(1);
   setCollectionControlsLocked(false);
+  updatePlaybackButton();
 }
 
 async function waitForCollectionResume(runId) {
@@ -677,7 +674,7 @@ function resetCurve({ locked = true } = {}) {
   histogramCurvePath.style.transition = "";
   histogramCurvePoints.replaceChildren();
   curveButton.disabled = locked;
-  curveButton.textContent = "FORM SMOOTH CURVE";
+  curveButton.textContent = "Form smooth curve";
   curvePipelineState.textContent = locked ? "LOCKED" : "READY";
   curvePipelineState.closest("li")?.classList.toggle("active", !locked);
 }
@@ -703,7 +700,7 @@ function clearComparisonReference() {
   histogramReference.classList.remove("visible");
   histogramReferencePath.removeAttribute("d");
   curveLegend.hidden = true;
-  compareModeHint.textContent = "KEEP PREVIOUS TEMPERATURE";
+  compareToggle.title = "Compare with the previous temperature curve";
 }
 
 function captureCurrentCurveAsReference() {
@@ -717,7 +714,7 @@ function captureCurrentCurveAsReference() {
     temperature: currentTemperature,
     counts: Array.from(accumulatedCounts),
   };
-  compareModeHint.textContent = `BASELINE ${currentTemperature} K`;
+  compareToggle.title = `Comparison baseline: ${currentTemperature} K`;
   renderComparisonReference();
   return true;
 }
@@ -725,16 +722,12 @@ function captureCurrentCurveAsReference() {
 function setCompareMode(nextEnabled) {
   compareEnabled = nextEnabled;
   compareToggle.setAttribute("aria-checked", String(nextEnabled));
-  compareToggle.setAttribute("aria-label", nextEnabled
-    ? "Disable temperature curve comparison"
-    : "Compare with previous temperature curve");
-
   if (nextEnabled) captureCurrentCurveAsReference();
   else clearComparisonReference();
   renderComparisonReference();
 }
 
-function invalidateHistogram(message = "ENERGY DATA READY", { preserveComparison = false } = {}) {
+function invalidateHistogram(message = "Ready to count", { preserveComparison = false } = {}) {
   cancelCollection();
   clearHistogramTimers();
   resetCurve();
@@ -746,15 +739,15 @@ function invalidateHistogram(message = "ENERGY DATA READY", { preserveComparison
   histogramBars.replaceChildren();
   histogramStatus.classList.remove("hidden", "counting");
   histogramStatus.querySelector("strong").textContent = message;
-  histogramStatus.querySelector("span").textContent = "Count ten visible ensembles to build the distribution";
-  histogramRange.textContent = "RANGE 0—20 · ΔE 0.5";
+  histogramStatus.querySelector("span").textContent = "Count ten ensembles to build the distribution.";
+  histogramRange.textContent = "Range 0–20 · ΔE 0.5";
   histogramAxisMax.textContent = HISTOGRAM_ENERGY_MAX.toFixed(0);
-  histogramProgress.textContent = `0 / ${STATISTICAL_SAMPLE_TARGET.toLocaleString()} SAMPLES`;
+  histogramProgress.textContent = `0 / ${STATISTICAL_SAMPLE_TARGET.toLocaleString()} samples`;
   overflowReadout.textContent = `E > ${HISTOGRAM_ENERGY_MAX}: 0`;
-  yScaleReadout.textContent = "SHARED Y SCALE";
+  yScaleReadout.textContent = "Shared y scale";
   histogramPipelineState.textContent = "READY";
   generateButton.disabled = false;
-  generateButton.textContent = "COUNT 10,000 PARTICLES";
+  generateButton.textContent = "Count 10,000 particles";
 }
 
 function countCurrentEnsemble(batchIndex) {
@@ -843,17 +836,15 @@ function updateHistogramBars() {
     bar.setAttribute("aria-label", bar.title);
     bar.querySelector(".histogram-bar-value").textContent = count.toLocaleString();
   });
-  yScaleReadout.textContent = `SHARED Y MAX ${scaleMaximum.toLocaleString()}`;
+  yScaleReadout.textContent = `Shared y max ${scaleMaximum.toLocaleString()}`;
   renderComparisonReference();
 }
 
 function updateCollectionReadouts(batchNumber) {
   ensembleIndicator.hidden = false;
   ensembleBatchReadout.textContent = `${String(batchNumber).padStart(2, "0")} / ${ENSEMBLE_BATCH_COUNT}`;
-  ensembleIndicator.style.setProperty("--batch-progress", `${batchNumber * 10}%`);
-  histogramProgress.textContent = `${accumulatedSampleCount.toLocaleString()} / ${STATISTICAL_SAMPLE_TARGET.toLocaleString()} SAMPLES`;
+  histogramProgress.textContent = `${accumulatedSampleCount.toLocaleString()} / ${STATISTICAL_SAMPLE_TARGET.toLocaleString()} samples`;
   overflowReadout.textContent = `E > ${HISTOGRAM_ENERGY_MAX}: ${accumulatedOverflow.toLocaleString()}`;
-  performanceLabel.textContent = `ENSEMBLE ${String(batchNumber).padStart(2, "0")} / ${ENSEMBLE_BATCH_COUNT}`;
 }
 
 async function revealHistogramBars(runId) {
@@ -892,6 +883,7 @@ async function generateHistogram() {
   const runId = collectionRunId;
   isCollecting = true;
   collectionPaused = false;
+  updatePlaybackButton();
   accumulatedCounts = new Uint32Array(HISTOGRAM_BIN_COUNT);
   accumulatedOverflow = 0;
   accumulatedSampleCount = 0;
@@ -905,9 +897,9 @@ async function generateHistogram() {
   histogramStatus.classList.add("hidden");
   histogramStatus.classList.remove("counting");
   histogramPipelineState.textContent = "COUNTING";
-  histogramRange.textContent = `RANGE 0—${HISTOGRAM_ENERGY_MAX} · ΔE ${HISTOGRAM_BIN_WIDTH.toFixed(1)}`;
+  histogramRange.textContent = `Range 0–${HISTOGRAM_ENERGY_MAX} · ΔE ${HISTOGRAM_BIN_WIDTH.toFixed(1)}`;
   histogramAxisMax.textContent = HISTOGRAM_ENERGY_MAX.toFixed(0);
-  generateButton.textContent = "COUNTING ENSEMBLES…";
+  generateButton.textContent = "Counting…";
 
   for (let batchIndex = 0; batchIndex < ENSEMBLE_BATCH_COUNT; batchIndex += 1) {
     if (!(await waitForCollectionResume(runId))) return;
@@ -927,11 +919,11 @@ async function generateHistogram() {
   }
 
   isCollecting = false;
+  updatePlaybackButton();
   ensembleIndicator.hidden = true;
   setCollectionControlsLocked(false);
   histogramPipelineState.textContent = "COMPLETE";
-  performanceLabel.textContent = `${STATISTICAL_SAMPLE_TARGET.toLocaleString()} SAMPLES · COMPLETE`;
-  generateButton.textContent = "RECOUNT 10,000 PARTICLES";
+  generateButton.textContent = "Recount 10,000 particles";
   resetCurve({ locked: false });
 }
 
@@ -993,7 +985,7 @@ function formSmoothCurve() {
     histogramCurve.classList.add("complete");
     curvePipelineState.textContent = "COMPLETE";
     curveButton.disabled = false;
-    curveButton.textContent = "REPLAY CURVE FORMATION";
+    curveButton.textContent = "Replay curve formation";
   }, 2800);
 }
 
@@ -1053,7 +1045,6 @@ function toggleGestureMode(force) {
     document.documentElement.classList.remove('gesture-mode');
     hasStarted=gestureRestore.hasStarted;
     setRunning(gestureRestore.isRunning);
-    startCurtain.classList.toggle('hidden',hasStarted);
     setVelocityVectors(gestureRestore.showVelocityVectors);
     ({cameraDistance,yaw,pitch,dragMoved}=gestureRestore);
     window.scrollTo(0,gestureRestore.scroll);
@@ -1074,21 +1065,18 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pagehide',()=>gestureView?.stop());
 
-startButton.addEventListener("click", startSimulation);
 playButton.addEventListener("click", () => {
-  if (!hasStarted) startSimulation();
-  else {
-    if (isCollecting) resumeCollection();
-    setRunning(true);
-  }
-});
-pauseButton.addEventListener("click", () => {
-  if (hasStarted) {
+  if (playbackActive()) {
     if (isCollecting) {
       collectionPaused = true;
       ensembleIndicator.classList.add("paused");
     }
     setRunning(false);
+  } else if (!hasStarted) {
+    startSimulation();
+  } else {
+    if (isCollecting) resumeCollection();
+    setRunning(true);
   }
 });
 resetButton.addEventListener("click", resetSimulation);

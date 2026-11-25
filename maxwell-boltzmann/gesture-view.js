@@ -9,20 +9,27 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
   layer.hidden = true;
   layer.setAttribute('aria-label','Live gesture laboratory');
   layer.innerHTML = `
-    <div class="gesture-brand">${brand}<span>THE CURVE IS COUNTED.</span></div>
+    <div class="gesture-brand">${brand}</div>
     <div class="gesture-return">Double-click model or Esc to return</div>
     <aside class="gesture-data">
-      <div class="gesture-temperature-label">TEMPERATURE</div>
-      <div class="gesture-temperature"><span data-temperature>300</span><small>K</small></div>
-      <div class="gesture-response" data-response role="status">Allow camera to use gestures</div>
-      <button class="gesture-retry" data-retry hidden>Retry camera</button>
-      <div class="gesture-curve-title"><span>Energy distribution</span><span class="gesture-live">Live</span></div>
+      <div class="gesture-summary">
+        <h2>Energy distribution</h2>
+        <div class="gesture-thermal">
+          <div class="gesture-temperature-label">TEMPERATURE</div>
+          <div class="gesture-temperature"><span data-temperature>300</span> <small>K</small></div>
+        </div>
+      </div>
       <canvas data-curve role="img" aria-label="Live fitted energy distribution from counted particles"></canvas>
       <div class="gesture-caption"><span data-count>100 particles counted</span><span data-tail></span></div>
-      <div class="gesture-estimate">Real-time counts · Smoothed estimate</div>
-      <div class="gesture-estimate" data-model-note></div>
+      <p class="gesture-model-note" data-model-note hidden></p>
     </aside>
-    <div class="gesture-legend"><span>Open palm <b>Heat</b></span><span>Fist <b>Cool</b></span><span>OK <b>Closer</b></span><span>V <b>Further</b></span></div>
+    <footer class="gesture-footer">
+      <div class="gesture-feedback">
+        <span class="gesture-response" data-response role="status">Allow camera to use gestures</span>
+        <button class="gesture-retry" data-retry hidden>Retry camera</button>
+      </div>
+      <div class="gesture-legend"><span>Open palm <b>Heat</b></span><span>Fist <b>Cool</b></span><span>OK <b>Closer</b></span><span>V <b>Further</b></span></div>
+    </footer>
     <video playsinline muted aria-hidden="true"></video>`;
   document.body.append(layer);
   const video = layer.querySelector('video');
@@ -49,7 +56,11 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
     'HAND TRACKING UNAVAILABLE — RETRY':'Hand tracking unavailable',
   };
   const tracking = createGestureCamera({ video,
-    onStatus(message,error=false) { response.textContent=messages[message]||message; retry.hidden=!error; },
+    onStatus(message,error=false) {
+      const text=messages[message]||message;
+      if(response.textContent!==text) response.textContent=text;
+      retry.hidden=!error;
+    },
     onGesture(gesture,dt) {
       if (!active) return;
       if (gesture==='palm' || gesture==='fist') {
@@ -73,10 +84,11 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
       const result=countAndFit(getEnergies(),{energyLimit,binWidth});
       target=result.values;
       if (!displayed) displayed=Float64Array.from(target);
-      countLabel.textContent=`${result.n.toLocaleString()} particles counted`;
+      countLabel.textContent=`${result.n.toLocaleString()} particles · smoothed counts`;
       tailLabel.textContent=result.overflow?`${result.overflow} above ${energyLimit}`:'';
       temperatureLabel.textContent=Math.round(getTemperature()).toLocaleString('en-US');
-      note.textContent=getNote()+(autoDensityScale?' · Density scale auto':'');
+      note.textContent=[getNote(),autoDensityScale?'Density scale auto':''].filter(Boolean).join(' · ');
+      note.hidden=!note.textContent;
       if(autoDensityScale) fixedY=Math.max(.001,Math.max(...target)*1.25);
       lastCount=now;
     }
@@ -94,10 +106,10 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
     const px=i=>left+i/(displayed.length-1)*(right-left);
     const py=v=>bottom-v/fixedY*(bottom-top);
     ctx.font='10px ui-sans-serif, system-ui, sans-serif';
-    ctx.fillStyle='#777'; ctx.textAlign='left'; ctx.fillText('Probability density',left,10);
+    ctx.fillStyle='#9a9a9a'; ctx.textAlign='left'; ctx.fillText('Probability density',left,10);
     ctx.lineWidth=1; ctx.strokeStyle='rgba(255,255,255,.18)';
     ctx.beginPath(); ctx.moveTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
-    ctx.fillStyle='#777';
+    ctx.fillStyle='#9a9a9a';
     for(let value=0;value<=energyLimit;value+=energyLimit/4) {
       const x=left+value/energyLimit*(right-left);
       ctx.textAlign='center'; ctx.fillText(String(value),x,bottom+17);
@@ -110,15 +122,11 @@ export function createGestureView({ getEnergies, getTemperature, setTemperature,
       ctx.strokeStyle='#eee';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(left,bottom);ctx.lineTo(left,top+30);ctx.stroke();
       return;
     }
-    // Only the baseline and a discreet upper tick: axes remain fixed during heating.
-    ctx.fillStyle='#666'; ctx.fillText(fixedY<.1?fixedY.toFixed(3):fixedY.toFixed(1),0,top+4);
+    // Only the baseline and a discreet upper tick, including in auto-scale mode.
+    ctx.fillStyle='#9a9a9a'; ctx.fillText(fixedY<.1?fixedY.toFixed(3):fixedY.toFixed(1),0,top+4);
     ctx.save(); ctx.beginPath(); ctx.rect(left,top,right-left,bottom-top); ctx.clip();
     ctx.beginPath(); displayed.forEach((v,i)=>i?ctx.lineTo(px(i),py(v)):ctx.moveTo(px(i),py(v)));
-    ctx.lineWidth=2; ctx.lineJoin='round'; ctx.strokeStyle='#f2f2f2'; ctx.stroke();
-    ctx.lineTo(right,bottom); ctx.lineTo(left,bottom); ctx.closePath();
-    const fill=ctx.createLinearGradient(0,top,0,bottom);
-    fill.addColorStop(0,'rgba(255,255,255,.14)'); fill.addColorStop(1,'rgba(255,255,255,.015)');
-    ctx.fillStyle=fill; ctx.fill(); ctx.restore();
+    ctx.lineWidth=2; ctx.lineJoin='round'; ctx.strokeStyle='#f2f2f2'; ctx.stroke(); ctx.restore();
   }
   return {
     start() {
