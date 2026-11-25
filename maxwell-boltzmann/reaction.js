@@ -1,12 +1,12 @@
 import * as THREE from './vendor/three.module.min.js';
 import { createBoxEdges } from './box-edges.js';
-import { createGestureView } from './gesture-view.js?v=20261125a';
+import { createGestureView } from './reaction-gesture-view.js?v=20261125b';
 import { countAndFit } from './gesture-science.js?v=20261014';
 import { ReactionSystem,SPECIES,kinetic,atomCounts } from './reaction-physics.js?v=20261014f';
 import {createDiffuseView} from './reaction-diffuse.js?v=20261014d';
 
 const $=selector=>document.querySelector(selector);
-const viewport=$('#threeViewport'),slider=$('#temperatureSlider');
+const viewport=$('#threeViewport'),curtain=$('#startCurtain'),slider=$('#temperatureSlider');
 const system=new ReactionSystem({count:2500,temperature:0});
 const mixtureDialog=$('#mixtureDialog'),mixtureKeys=['H2','I2','HI'];
 const maximumMolecules=5000;
@@ -25,8 +25,7 @@ const shellMaterial=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true
 const chart=$('#energyChart'),ctx=chart.getContext('2d');
 
 function failure(error) {
-  setRunning(false);$('#playButton').disabled=true;
-  $('#failure').hidden=false;
+  $('#failure').hidden=false;curtain.classList.add('hidden');
   $('#failureDetail').textContent='The 3D view could not start. Enable WebGL or use another browser.';
   $('#stateLabel').textContent='UNAVAILABLE';console.error(error);
 }
@@ -48,9 +47,9 @@ function init() {
     createMeshes();resize();updateCamera();attachPointer();
     diffuseView=createDiffuseView({THREE,viewport,camera,getParticles:()=>system.particles});
     new ResizeObserver(resize).observe(viewport);
-    renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();failure(new Error('WebGL context lost'));});
+    renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();running=false;failure(new Error('WebGL context lost'));});
     document.documentElement.dataset.reactionReady='true';
-    $('#stateLabel').textContent='READY';$('#playButton').disabled=false;
+    $('#stateLabel').textContent='READY';$('#startStatus').textContent='INITIAL MIXTURE · READY TO COLLIDE';$('#startButton').disabled=false;
     updateUI();requestAnimationFrame(animate);openMixture();
   } catch(error) {failure(error);}
 }
@@ -126,12 +125,10 @@ function attachPointer() {
 }
 function setRunning(value) {
   running=value;$('#stateLabel').textContent=value?'LIVE':started?'PAUSED':'READY';
-  $('#liveState').classList.toggle('running',value);
-  const playButton=$('#playButton');
-  playButton.classList.toggle('active',value);
-  playButton.textContent=value?'Pause':'Play';
+  $('#liveState').classList.toggle('running',value);$('#playButton').classList.toggle('active',value);
+  $('#playButton').setAttribute('aria-pressed',String(value));$('#pauseButton').setAttribute('aria-pressed',String(!value&&started));
 }
-function start() {if(!renderer||!configured||mixtureDialog.open) return;started=true;setRunning(true);}
+function start() {if(!renderer||!configured||mixtureDialog.open) return;started=true;curtain.classList.add('hidden');setRunning(true);}
 function setShells(value) {showShells=value;shellMesh.visible=value;$('#velocityToggle').setAttribute('aria-checked',String(value));syncMeshes();}
 function setTemperature(value) {
   system.setTemperature(Math.round(value));
@@ -142,13 +139,14 @@ function setTemperature(value) {
 function updateUI() {
   const counts=system.counts;
   updateMixtureLive(counts);
-  $('#initialCountReadout').textContent=`${system.initialCount.toLocaleString()} molecules`;
+  $('#initialCountReadout').textContent=`INITIAL · ${system.initialCount.toLocaleString()} MOLECULES`;
   const currentCount=system.particles.length.toLocaleString(),currentUnit=system.atomic?'atoms':'molecules';
   if($('#currentParticleCount').textContent!==currentCount) $('#currentParticleCount').textContent=currentCount;
   if($('#currentParticleUnit').textContent!==currentUnit) $('#currentParticleUnit').textContent=currentUnit;
   for(const species of Object.keys(counts)) $(`#count${species}`).textContent=counts[species].toLocaleString();
   $('#atomicCounts').hidden=!system.atomic;
-  $('#speciesTitle').textContent=system.atomic?'Atomic illustration':'Composition';
+  $('#speciesTitle').textContent=system.atomic?'Atomic limit illustration':'Current molecular inventory';
+  $('#phaseReadout').textContent=system.atomic?'ATOMIC LIMIT · TEACHING CONVENTION':'MOLECULAR MIXTURE';
   $('#temperatureReadout').textContent=`${Math.round(system.targetTemperature).toLocaleString()} K`;
   slider.style.setProperty('--temperature-progress',`${system.targetTemperature/10000*100}%`);
   $('#forwardCount').textContent=system.forward.toLocaleString();$('#reverseCount').textContent=system.reverse.toLocaleString();
@@ -240,12 +238,14 @@ function toggleGesture(force) {
     gestureView.start();
   } else {
     gestureView.stop();gestureMode=false;document.documentElement.classList.remove('gesture-mode');
-    started=restore.started;setRunning(restore.running);
+    started=restore.started;setRunning(restore.running);curtain.classList.toggle('hidden',started);
     setShells(restore.showShells);({yaw,pitch,distance}=restore);scrollTo(0,restore.scroll);
   }
   isDragging=false;resize();updateCamera();lastChart=-Infinity;
 }
-$('#playButton').addEventListener('click',()=>{if(running) setRunning(false);else start();});
+$('#startButton').addEventListener('click',start);
+$('#playButton').addEventListener('click',start);
+$('#pauseButton').addEventListener('click',()=>setRunning(false));
 slider.addEventListener('input',()=>setTemperature(Number(slider.value)));
 $('#velocityToggle').addEventListener('click',()=>setShells(!showShells));
 $('#diffuseToggle').addEventListener('click',()=>{
@@ -256,7 +256,7 @@ $('#diffuseToggle').addEventListener('click',()=>{
 function reset(inventory=system.initialInventory) {
   const total=mixtureKeys.reduce((sum,key)=>sum+inventory[key],0);
   system.reset(total,system.targetTemperature,{inventory});createMeshes();
-  started=false;setRunning(false);
+  started=false;setRunning(false);curtain.classList.remove('hidden');
   lastUI=-Infinity;lastChart=-Infinity;updateUI();
 }
 $('#resetButton').addEventListener('click',()=>reset());
@@ -269,7 +269,7 @@ function readMixture() {
   const ready=valid&&total>0&&total<=maximumMolecules;
   $('#confirmMixture').disabled=!ready;
   $('#mixtureFeedback').textContent=!valid?'Use whole numbers from 0 to 5,000.':total===0?'Add at least one molecule.':
-    total>maximumMolecules?'Keep the total at or below 5,000.':'';
+    total>maximumMolecules?'Keep the total at or below 5,000 for browser performance.':`Ready. ${total.toLocaleString()} molecules in total.`;
   return {inventory,valid:ready};
 }
 function updateMixtureLive(counts=system.counts) {
@@ -297,8 +297,9 @@ function openMixture() {
   $('#mixtureLive').hidden=!configured;
   $('#mixtureInputsLabel').hidden=!configured;
   mixtureDialog.classList.toggle('with-live-counts',configured);
-  $('#mixtureDescription').textContent=configured?`New counts will start at the same target temperature (${Math.round(system.targetTemperature).toLocaleString()} K).`:'Choose starting counts. The simulation begins at 0 K.';
-  $('#confirmMixture').textContent=configured?'Apply & restart':'Enter laboratory';
+  $('#mixtureDescription').textContent='Enter each species count. The total is calculated from your inputs. '+
+    (configured?`Simulation paused. Keep the current temperature: ${Math.round(system.targetTemperature).toLocaleString()} K.`:'Start at 0 K, then add energy.');
+  $('#confirmMixture').textContent=configured?'APPLY & RESTART →':'ENTER LABORATORY →';
   readMixture();mixtureDialog.showModal();updateMixtureLive();
 }
 function closeMixture() {mixtureDialog.close();setRunning(mixtureWasRunning);}

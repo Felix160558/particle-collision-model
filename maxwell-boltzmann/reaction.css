@@ -1,29 +1,16 @@
-.reaction-page {background:#080808;}
-.reaction-page .app-shell {padding:18px 0 32px;}
-.reaction-page .topbar {min-height:44px;gap:8px 20px;margin:0 0 12px;align-items:baseline;}
-.reaction-page .topbar h1 {margin:0;}
-.reaction-page .mode-home {display:inline-block;font-family:inherit;font-size:12px;font-weight:500;letter-spacing:0;color:#aaa;}
-.reaction-page .mode-home:hover {color:#fff;}
-html:not(.gesture-mode) .reaction-page .workspace {grid-template-columns:minmax(0,1fr) minmax(285px,330px);gap:14px;align-items:start;}
-html:not(.gesture-mode) .reaction-page .panel {background:#0d0d0d;box-shadow:none;}
-.reaction-page .panel-heading {padding:10px 16px;min-height:42px;}
-.reaction-page .panel-heading h2 {margin:0;white-space:nowrap;}
-.reaction-page .live-state {font-size:10px;letter-spacing:.06em;}
-html:not(.gesture-mode) .reaction-page .viewport-wrap {height:clamp(390px,60vh,650px);min-height:0;background:#090909;}
-.reaction-page .viewport-wrap::before {display:none;}
-.reaction-page .reaction-dock {position:static;transform:none;width:auto;min-height:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:9px 12px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none;backdrop-filter:none;}
-.reaction-dock .transport-controls,.reaction-view-controls {display:flex;flex-wrap:wrap;gap:6px;}
-.reaction-dock .transport-button,.diffuse-toggle,.mixture-button,.reaction-dock .vector-toggle {display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:34px;height:auto;margin:0;padding:5px 9px;border:1px solid var(--line);border-radius:3px;background:transparent;color:#c6c6c6;font-family:inherit;font-size:12px;font-weight:500;line-height:1.2;letter-spacing:0;white-space:nowrap;cursor:pointer;}
-.reaction-dock .transport-button:hover,.reaction-dock .vector-toggle:hover,.diffuse-toggle:hover,.mixture-button:hover {color:#fff;border-color:#777;}
-.reaction-dock .transport-button.active,.diffuse-toggle.active,.reaction-dock .vector-toggle[aria-checked="true"] {color:#fff;background:#232323;}
-.reaction-dock .transport-button:disabled {color:#777;cursor:not-allowed;}
-.reaction-dock .vector-toggle[aria-checked="true"] .toggle-track i {box-shadow:none;}
-.reaction-dock .mixture-button {margin-left:auto;}
+.reaction-equation {font-size:18px;letter-spacing:.04em;color:#ddd;white-space:nowrap;}
+.diffuse-toggle {display:flex;align-items:center;gap:10px;white-space:nowrap;border:1px solid #454545;border-radius:3px;padding:9px 11px;background:rgba(255,255,255,.025);color:#aaa;font:9px ui-monospace,monospace;letter-spacing:.08em;cursor:pointer;}
+.diffuse-toggle span {width:7px;height:7px;border:1px solid #777;border-radius:50%;}
+.diffuse-toggle:hover,.diffuse-toggle.active {color:#eee;border-color:#777;}
+.diffuse-toggle.active span {background:#eee;border-color:#eee;box-shadow:0 0 9px #aaa;}
 .composition-haze {position:absolute;inset:0;pointer-events:none;}
 .composition-haze[hidden] {display:none !important;}
+.mixture-button {display:flex;gap:18px;align-items:center;padding:9px 12px;border:1px solid #444;border-radius:3px;background:transparent;color:#ddd;font:10px ui-monospace,monospace;cursor:pointer;white-space:nowrap;}
+.mixture-button span {color:#888;font-size:8px;letter-spacing:.1em;}
+.mixture-button:hover {border-color:#888;}
 .mixture-dialog {box-sizing:border-box;width:min(580px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:32px;border:1px solid #454545;border-radius:7px;color:#eee;background:#101010;box-shadow:0 28px 100px #000b;color-scheme:dark;}
 .mixture-dialog::backdrop {background:rgba(0,0,0,.8);backdrop-filter:blur(12px);}
-.mixture-dialog h2 {font-size:clamp(22px,3vw,29px);font-weight:400;letter-spacing:-.035em;margin:0 0 10px;}
+.mixture-dialog h2 {font-size:clamp(22px,3vw,29px);font-weight:350;letter-spacing:-.035em;margin:16px 0 10px;}
 .mixture-dialog #mixtureDescription {font-size:12px;color:#999;line-height:1.7;margin:0 0 28px;}
 .mixture-live {margin:-8px 0 24px;padding:16px;border:1px solid #343434;border-radius:3px;background:#141414;}
 .mixture-live[hidden],.mixture-inputs-label[hidden],.mixture-live-atoms[hidden] {display:none;}
@@ -35,6 +22,7 @@ html:not(.gesture-mode) .reaction-page .viewport-wrap {height:clamp(390px,60vh,6
 .mixture-live footer {padding-top:11px;border-top:1px solid #2e2e2e;}
 .mixture-live footer b {margin-left:7px;color:#ddd;font-weight:400;}
 .mixture-live footer small {font-size:9px;letter-spacing:0;}
+.mixture-live > p:last-child {margin:12px 0 0;color:#777;font-size:9px;line-height:1.6;}
 .mixture-live-atoms {display:flex;gap:8px;color:#aaa;font-size:11px;margin:0 0 14px;}
 .mixture-live-atoms b {font-weight:400;color:#ddd;}
 .mixture-live-atoms span {margin:0 4px;color:#666;}
@@ -44,6 +32,7 @@ html:not(.gesture-mode) .reaction-page .viewport-wrap {height:clamp(390px,60vh,6
 .with-live-counts .mixture-live dl {margin:12px 0;}
 .with-live-counts .mixture-inputs-label {margin-bottom:10px;}
 .with-live-counts .mixture-total {margin-top:20px;padding-top:14px;}
+.with-live-counts .mixture-note {margin:12px 0 18px;}
 .mixture-inputs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
 .mixture-inputs label {display:grid;gap:11px;min-width:0;}
 .mixture-inputs label > span {display:flex;align-items:center;gap:10px;color:#ccc;font-size:13px;}
@@ -51,62 +40,59 @@ html:not(.gesture-mode) .reaction-page .viewport-wrap {height:clamp(390px,60vh,6
 .mixture-inputs input:focus {border-color:#aaa;background:#1a1a1a;}
 .mixture-inputs small {color:#777;font:10px ui-monospace,monospace;}
 .mixture-total {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:27px;padding-top:17px;border-top:1px solid #333;}
-.mixture-total label {font-size:12px;color:#aaa;}
+.mixture-total > span {font:9px ui-monospace,monospace;letter-spacing:.12em;color:#999;}
 .mixture-total output {font:16px ui-monospace,monospace;white-space:nowrap;}
-.mixture-feedback {margin:10px 0 0;color:#ccc;font-size:12px;line-height:1.5;}
-.mixture-feedback:empty {margin:0;}
-.mixture-actions {display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:16px;}
-.mixture-actions button {border:1px solid #555;border-radius:3px;padding:9px 12px;background:transparent;color:#ddd;font-size:12px;cursor:pointer;}
+.mixture-feedback {margin:12px 0 0;min-height:18px;color:#aaa;font-size:11px;line-height:1.6;}
+.mixture-note {margin:16px 0 24px;color:#777;font-size:10px;line-height:1.7;}
+.mixture-actions {display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;}
+.mixture-actions button {border:1px solid #555;border-radius:3px;padding:12px 14px;background:transparent;color:#ccc;font:9px ui-monospace,monospace;letter-spacing:.07em;cursor:pointer;}
 .mixture-actions #confirmMixture {background:#eee;color:#111;border-color:#eee;}
 .mixture-actions #confirmMixture:disabled {background:#252525;color:#666;border-color:#353535;cursor:not-allowed;}
 .mixture-actions button[hidden] {display:none;}
-@media(max-width:560px) {.mixture-dialog {padding:24px 20px;}.mixture-inputs {gap:9px;}.mixture-inputs input {font-size:21px;padding:12px 6px;}.mixture-total output {font-size:14px;}}
-.reaction-page .statistics-panel {position:static;z-index:auto;width:auto;min-height:0;margin:0;backdrop-filter:none;}
-.reaction-live-count {display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 16px 0;}
-.reaction-live-count h2,.reaction-exchange h2,.reaction-chart-heading h2 {margin:0;font-size:14px;font-weight:550;}
+@media(max-width:560px) {.mixture-dialog {padding:24px 20px;}.mixture-inputs {gap:9px;}.mixture-inputs input {font-size:21px;padding:12px 6px;}.mixture-control {justify-content:center;}.mixture-total output {font-size:14px;}}
+.statistics-panel {overflow-y:auto;scrollbar-width:thin;}
+.statistics-panel > * {flex-shrink:0;}
+.reaction-live-count {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--line);}
+.reaction-live-count > span {font:8px ui-monospace,monospace;letter-spacing:.11em;color:#999;}
 .reaction-live-count > div {display:flex;align-items:baseline;gap:8px;}
-.reaction-live-count strong {font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;}
-.reaction-live-count small {color:#aaa;font-size:11px;}
+.reaction-live-count strong {font:300 24px ui-monospace,monospace;color:#eee;font-variant-numeric:tabular-nums;}
+.reaction-live-count small {color:#888;font-size:9px;}
 html.gesture-mode .reaction-details {display:none;}
-.reaction-species {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 16px;border-bottom:1px solid var(--line);gap:10px;}
-.reaction-species > div {display:grid;grid-template-columns:18px 1fr;gap:4px 6px;align-items:center;font-size:12px;}
-.reaction-species strong {grid-column:1/-1;font-weight:400;font-size:23px;font-variant-numeric:tabular-nums;}
+.reaction-species {display:grid;grid-template-columns:repeat(3,1fr);padding:18px 20px;border-bottom:1px solid var(--line);gap:16px;}
+.reaction-species > div {display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-size:12px;}
+.reaction-species strong {grid-column:1/-1;font-weight:300;font-size:32px;font-variant-numeric:tabular-nums;}
 .molecule-key {width:18px;height:7px;position:relative;border-top:1px solid #bbb;}
 .molecule-key::before,.molecule-key::after {content:'';position:absolute;top:-4px;width:5px;height:5px;background:#eee;border-radius:50%;}
 .molecule-key::before {left:0;}.molecule-key::after {right:0;}
 .molecule-key.i2::before,.molecule-key.i2::after {width:8px;height:8px;top:-5px;background:#a478d4;}
 .molecule-key.hi::after {width:8px;height:8px;top:-5px;}
 .atomic-counts {padding:12px 20px;font-size:13px;border-bottom:1px solid var(--line);word-spacing:12px;}.atomic-counts[hidden] {display:none;}
-.reaction-temperature {padding:14px 16px;border-bottom:1px solid var(--line);}
-.reaction-temperature .temperature-heading label {font-family:inherit;font-size:12px;letter-spacing:0;color:#ddd;}
-.reaction-temperature .temperature-heading output {font-size:14px;}
-.reaction-temperature .temperature-scale {color:#aaa;font-size:10px;letter-spacing:0;}
-.reaction-barriers,.reaction-counters {display:grid;grid-template-columns:1fr 1fr;}
-.reaction-barriers > div,.reaction-counters > div {padding:8px 16px;display:flex;gap:6px;align-items:baseline;}
+.reaction-temperature {padding:18px 20px;border-bottom:1px solid var(--line);}
+.reaction-barriers,.reaction-counters {display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);}
+.reaction-barriers > div,.reaction-counters > div {padding:13px 20px;display:flex;gap:9px;align-items:baseline;border-right:1px solid var(--line);}
 .reaction-barriers span,.reaction-counters span {font-size:10px;color:#999;}
 .reaction-barriers strong {font-size:18px;font-weight:400;}.reaction-barriers small {font-size:8px;color:#888;}
 .reaction-counters > div {display:grid;gap:6px;}.reaction-counters strong {font-size:22px;font-weight:300;}
-.reaction-contact {padding:10px 16px;display:grid;gap:4px;}
-.reaction-exchange {padding:12px 16px;display:grid;gap:5px;border-bottom:1px solid var(--line);}
-.reaction-exchange small {font-size:11px;color:#aaa;font-weight:400;}
+.reaction-contact {padding:16px 20px;border-bottom:1px solid var(--line);display:grid;gap:8px;}
+.reaction-exchange {padding:12px 20px;border-bottom:1px solid var(--line);display:grid;gap:7px;font-size:10px;color:#ccc;}
+.reaction-exchange small {font-size:9px;color:#888;}
+.reaction-exchange > span {font:8px ui-monospace,monospace;letter-spacing:.09em;color:#999;}
 .reaction-exchange table {width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums;}
-.reaction-exchange th {font-size:11px;font-weight:400;color:#aaa;padding:3px 0;}
-.reaction-exchange td {font-size:20px;font-weight:400;padding:2px 0;}
-.reaction-stoichiometry {margin:0;padding:0 16px 12px;font-size:11px;color:#aaa;}
-.reaction-contact > span {font-size:11px;color:#aaa;}
+.reaction-exchange th {font-size:9px;font-weight:400;color:#888;padding:3px 0;}
+.reaction-exchange td {font-size:20px;font-weight:300;padding:4px 0 2px;}
+.reaction-stoichiometry {padding:10px 20px;border-bottom:1px solid var(--line);font-size:9px;color:#999;}
+.reaction-contact > span {font:8px ui-monospace,monospace;letter-spacing:.12em;color:#888;}
 .reaction-contact > strong {font-size:13px;font-weight:400;}.reaction-contact > small {font-size:10px;color:#999;line-height:1.6;}
-.reaction-energy {padding:12px 16px;display:grid;gap:7px;}.reaction-energy > div {display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#aaa;}.reaction-energy b {text-align:right;font-weight:500;color:#e4e4e4;font-variant-numeric:tabular-nums;}
-.reaction-model-note {padding:0 16px 12px;margin:0;font-size:11px;color:#aaa;line-height:1.55;}
-.reaction-diagnostics {border-top:1px solid var(--line);}
-.reaction-diagnostics summary,.reaction-details summary {padding:10px 16px;color:#c6c6c6;font-size:12px;cursor:pointer;}
-.reaction-diagnostics[open] summary {color:#eee;}
-.reaction-diagnostics .temperature-relation {margin:0;padding:0 16px 9px;color:#aaa;font-size:11px;}
-.reaction-distribution {display:block;min-height:0;}
-.reaction-chart-heading {display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;padding:12px 16px 0;}
-.reaction-chart {min-width:0;padding:10px 16px 4px;}.reaction-chart canvas {width:100%;height:210px;display:block;}
-.reaction-fit-meta {display:flex;flex-wrap:wrap;gap:5px 12px;color:#aaa;font-size:11px;}
-.reaction-axis-note {margin:0;padding:3px 16px 10px;color:#aaa;font-size:11px;}
-.reaction-details {margin:8px 0;font-size:12px;color:#aaa;line-height:1.65;}.reaction-details a {color:#ddd;}.reaction-details p {max-width:72ch;margin:0 16px 10px;}
+.reaction-energy {padding:14px 20px;display:grid;gap:11px;}.reaction-energy > div {display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#999;}.reaction-energy b {font-weight:400;color:#ddd;font-variant-numeric:tabular-nums;}
+.reaction-model-note {padding:10px 20px 16px;margin:0;font-size:9px;color:#929292;line-height:1.7;}
+.reaction-distribution {min-height:260px;grid-template-columns:330px 1fr;}
+.reaction-chart {min-width:0;padding:24px 28px;}.reaction-chart canvas {width:100%;height:220px;display:block;}
+.reaction-fit-meta {display:flex;gap:18px;color:#bbb;font:9px ui-monospace,monospace;}.reaction-axis-note {font-size:9px !important;color:#888 !important;}
+.reaction-details {margin:18px 0 8px;font-size:11px;color:#999;line-height:1.8;}.reaction-details summary {cursor:pointer;color:#ccc;}.reaction-details a {color:#ddd;}.reaction-details p {max-width:1000px;}
+.reaction-dock {grid-template-columns:auto auto 1fr auto;max-width:1120px;}.reaction-dock .transport-controls {justify-content:center;}
+.reaction-dock .toggle-copy strong {white-space:nowrap;}
 #failure a {color:#fff;font-size:11px;padding:10px;}
-@media(max-width:900px) {html:not(.gesture-mode) .reaction-page .workspace {grid-template-columns:minmax(0,1fr);} html:not(.gesture-mode) .reaction-page .viewport-wrap {height:clamp(270px,52vh,450px);}}
-@media(max-width:560px) {.reaction-page .topbar {flex-wrap:wrap;}.reaction-page .topbar h1 span {display:inline;}.reaction-page .reaction-dock .mixture-button {margin-left:0;}.reaction-chart {padding-inline:10px;}.reaction-chart canvas {height:180px;}}
+@media(min-width:901px) {.reaction-temperature .temperature-heading {gap:10px;}.reaction-temperature output {font-size:14px;}.reaction-species strong {font-size:29px;}.reaction-distribution .distribution-copy {padding:28px;}.reaction-distribution h2 {font-size:20px;}}
+@media(max-width:900px) {.reaction-distribution {grid-template-columns:1fr;}.reaction-chart canvas {height:200px;}.reaction-dock {grid-template-columns:auto auto;}.reaction-dock .transport-controls {grid-column:1/-1;}.reaction-dock .performance-readout {display:none;}}
+@media(max-width:560px) {.topbar-actions .mode-home {display:block;font-size:7px;}.reaction-equation {font-size:12px;}.reaction-chart {padding:18px 12px;}.reaction-dock {grid-template-columns:1fr;}.reaction-dock .vector-toggle {justify-self:center;}.reaction-dock .transport-controls {grid-column:1;}.reaction-dock .particle-control {justify-content:center;}}
+@media(max-width:900px) {.topbar {flex-wrap:wrap;gap:14px;}.topbar-actions {gap:14px;width:100%;justify-content:flex-end;}.diffuse-toggle {padding:8px 9px;font-size:8px;}}
